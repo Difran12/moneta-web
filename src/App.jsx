@@ -3,6 +3,7 @@ import { useStore } from './store/useStore.jsx';
 import YearlyReport from './components/YearlyReport';
 import Dashboard from './components/Dashboard';
 import Settings from './components/Settings';
+import SavingsAndDebts from './components/SavingsAndDebts';
 import { Wallet, TrendingUp, TrendingDown, Plus, Trash2, Sun, Moon, Globe, X } from 'lucide-react';
 import './index.css';
 
@@ -83,6 +84,9 @@ export default function App() {
           <button className={`tab-btn ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')}>
             {t('dashboard')}
           </button>
+          <button className={`tab-btn ${activeTab === 'alokasi' ? 'active' : ''}`} onClick={() => setActiveTab('alokasi')}>
+            {t('savingsAndDebts')}
+          </button>
           <button className={`tab-btn ${activeTab === 'rekap' ? 'active' : ''}`} onClick={() => setActiveTab('rekap')}>
             {t('yearlyReport')}
           </button>
@@ -154,6 +158,8 @@ export default function App() {
 
       {activeTab === 'dashboard' ? (
         <Dashboard />
+      ) : activeTab === 'alokasi' ? (
+        <SavingsAndDebts />
       ) : activeTab === 'rekap' ? (
         <YearlyReport />
       ) : (

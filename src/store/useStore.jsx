@@ -22,6 +22,17 @@ const defaultAllocations = [
   { id: '10', name: 'Tak Terduga', percent: 4, color: '#14b8a6' },
 ];
 
+const defaultSavingsGoals = [
+  { id: '1', name: 'Tabungan Darurat', target: 20000000, current: 8500000, icon: 'Shield', color: '#10b981' },
+  { id: '2', name: 'Investasi Saham & Reksadana', target: 50000000, current: 22000000, icon: 'TrendingUp', color: '#6366f1' },
+  { id: '3', name: 'Tabungan Liburan', target: 10000000, current: 4000000, icon: 'Plane', color: '#06b6d4' },
+];
+
+const defaultDebts = [
+  { id: '1', name: 'Cicilan Laptop / Gadget', total: 12000000, paid: 7200000, dueDate: '25 Setiap Bulan', color: '#ef4444' },
+  { id: '2', name: 'KPR / Cicilan Rumah', total: 30000000, paid: 18000000, dueDate: '10 Setiap Bulan', color: '#f59e0b' },
+];
+
 const StoreContext = createContext();
 
 export function StoreProvider({ children }) {
@@ -48,6 +59,16 @@ export function StoreProvider({ children }) {
     return saved ? JSON.parse(saved) : defaultAllocations;
   });
 
+  const [savingsGoals, setSavingsGoals] = useState(() => {
+    const saved = localStorage.getItem('moneta_savings_goals');
+    return saved ? JSON.parse(saved) : defaultSavingsGoals;
+  });
+
+  const [debts, setDebts] = useState(() => {
+    const saved = localStorage.getItem('moneta_debts');
+    return saved ? JSON.parse(saved) : defaultDebts;
+  });
+
   const [lang, setLang] = useState(() => {
     return localStorage.getItem('money_tracker_lang') || 'en';
   });
@@ -57,8 +78,10 @@ export function StoreProvider({ children }) {
     localStorage.setItem('money_tracker_accounts', JSON.stringify(accounts));
     localStorage.setItem('money_tracker_income_cat', JSON.stringify(incomeCategories));
     localStorage.setItem('money_tracker_allocations', JSON.stringify(allocations));
+    localStorage.setItem('moneta_savings_goals', JSON.stringify(savingsGoals));
+    localStorage.setItem('moneta_debts', JSON.stringify(debts));
     localStorage.setItem('money_tracker_lang', lang);
-  }, [transactions, accounts, incomeCategories, allocations, lang]);
+  }, [transactions, accounts, incomeCategories, allocations, savingsGoals, debts, lang]);
 
   const t = (key) => {
     return translations[lang]?.[key] || translations['id']?.[key] || key;
@@ -75,6 +98,30 @@ export function StoreProvider({ children }) {
 
   const deleteTransaction = (id) => {
     setTransactions(prev => prev.filter(t => t.id !== id));
+  };
+
+  const addSavingsGoal = (goal) => {
+    setSavingsGoals(prev => [...prev, { ...goal, id: Date.now().toString(), current: Number(goal.current || 0) }]);
+  };
+
+  const depositSavingsGoal = (id, amount) => {
+    setSavingsGoals(prev => prev.map(g => g.id === id ? { ...g, current: g.current + Number(amount) } : g));
+  };
+
+  const deleteSavingsGoal = (id) => {
+    setSavingsGoals(prev => prev.filter(g => g.id !== id));
+  };
+
+  const addDebt = (debt) => {
+    setDebts(prev => [...prev, { ...debt, id: Date.now().toString(), paid: Number(debt.paid || 0) }]);
+  };
+
+  const payDebt = (id, amount) => {
+    setDebts(prev => prev.map(d => d.id === id ? { ...d, paid: Math.min(d.total, d.paid + Number(amount)) } : d));
+  };
+
+  const deleteDebt = (id) => {
+    setDebts(prev => prev.filter(d => d.id !== id));
   };
 
   const getBalance = () => {
@@ -106,6 +153,14 @@ export function StoreProvider({ children }) {
       setIncomeCategories,
       allocations,
       setAllocations,
+      savingsGoals,
+      addSavingsGoal,
+      depositSavingsGoal,
+      deleteSavingsGoal,
+      debts,
+      addDebt,
+      payDebt,
+      deleteDebt,
       lang,
       setLang,
       t

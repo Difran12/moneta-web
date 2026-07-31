@@ -57,6 +57,20 @@ export const translations = {
     saveAllocations: "Simpan Perubahan Alokasi",
     savedSuccess: "Pengaturan Berhasil Disimpan!",
     
+    // Savings & Debts
+    savingsAndDebts: "Investasi & Hutang",
+    savingsTitle: "Target Tabungan & Portfolio Investasi",
+    debtsTitle: "Manajemen Cicilan & Hutang",
+    addSavings: "Tambah Target Investasi/Tabungan",
+    addDebt: "Tambah Cicilan/Hutang",
+    targetAmount: "Target (Rp)",
+    currentAmount: "Terkumpul (Rp)",
+    paidAmount: "Terbayar (Rp)",
+    remainingAmount: "Sisa (Rp)",
+    dueDate: "Jatuh Tempo",
+    payInstallment: "Bayar Cicilan",
+    addDeposit: "Setor Tabungan",
+
     // Yearly Report
     yearlyReportTitle: "Pendapatan & Alokasi Tahun",
     monthCol: "Bulan",
@@ -123,6 +137,20 @@ export const translations = {
     saveAllocations: "Save Allocation Changes",
     savedSuccess: "Settings Saved Successfully!",
     
+    // Savings & Debts
+    savingsAndDebts: "Investments & Debts",
+    savingsTitle: "Savings Goals & Investment Portfolio",
+    debtsTitle: "Installments & Debt Management",
+    addSavings: "Add Investment/Savings Goal",
+    addDebt: "Add Installment/Debt",
+    targetAmount: "Target (IDR)",
+    currentAmount: "Collected (IDR)",
+    paidAmount: "Paid (IDR)",
+    remainingAmount: "Remaining (IDR)",
+    dueDate: "Due Date",
+    payInstallment: "Pay Installment",
+    addDeposit: "Add Deposit",
+
     // Yearly Report
     yearlyReportTitle: "Annual Income & Allocation",
     monthCol: "Month",
