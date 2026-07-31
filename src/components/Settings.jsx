@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { useStore } from '../store/useStore.jsx';
 import AccountLogo from './AccountLogo';
-import UnifiedAccountInput from './UnifiedAccountInput';
+import AddAccountModal from './AddAccountModal';
 import { BANK_AND_WALLET_CATALOG } from '../utils/bankAndWalletCatalog';
 import { Trash2, Plus, Minus, AlertCircle, Save } from 'lucide-react';
 
 export default function Settings() {
   const { accounts, setAccounts, incomeCategories, setIncomeCategories, allocations, setAllocations, t } = useStore();
 
-  const [newAccount, setNewAccount] = useState('');
+  const [isAddAccountModalOpen, setIsAddAccountModalOpen] = useState(false);
   const [newIncomeCat, setNewIncomeCat] = useState('');
 
   // Local state for allocations so we only save when valid
@@ -99,16 +99,28 @@ export default function Settings() {
             ))}
           </div>
 
-          {/* Single Unified Account Input with Autocomplete Catalog */}
-          <UnifiedAccountInput
-            existingAccounts={accounts}
-            onAddAccount={(name) => {
-              if (!accounts.includes(name)) {
-                setAccounts([...accounts, name]);
-              }
-            }}
-          />
+          {/* Add Account Modal Trigger Button */}
+          <button 
+            type="button" 
+            className="btn btn-primary" 
+            style={{ width: '100%', padding: '0.65rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 700 }}
+            onClick={() => setIsAddAccountModalOpen(true)}
+          >
+            <Plus size={18} /> + Add Account / Wallet (Pop-Up)
+          </button>
         </div>
+
+        {/* Add Account Modal Pop-Up */}
+        <AddAccountModal
+          isOpen={isAddAccountModalOpen}
+          onClose={() => setIsAddAccountModalOpen(false)}
+          existingAccounts={accounts}
+          onAddAccount={(name) => {
+            if (!accounts.includes(name)) {
+              setAccounts([...accounts, name]);
+            }
+          }}
+        />
 
         {/* Income Categories */}
         <div className="glass-card animate-fade-in" style={{ animationDelay: '0.1s' }}>
