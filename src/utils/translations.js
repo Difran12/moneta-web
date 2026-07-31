@@ -1,7 +1,7 @@
 export const translations = {
   id: {
     appTitle: "Moneta",
-    appSubtitle: "Pelacakan keuangan offline yang aman",
+    appSubtitle: "Personal Finance & Budget Management Platform",
     dashboard: "Dashboard",
     yearlyReport: "Rekap Tahunan",
     settings: "Pengaturan",
@@ -67,7 +67,7 @@ export const translations = {
   },
   en: {
     appTitle: "Moneta",
-    appSubtitle: "Secure offline financial tracking",
+    appSubtitle: "Personal Finance & Budget Management Platform",
     dashboard: "Dashboard",
     yearlyReport: "Yearly Report",
     settings: "Settings",
