@@ -7,7 +7,7 @@ const defaultTransactions = [
   { id: 2, type: 'expense', amount: 150000, category: 'Food', date: new Date().toISOString(), note: 'Lunch' },
   { id: 3, type: 'expense', amount: 300000, category: 'Transport', date: new Date(Date.now() - 86400000).toISOString(), note: 'Gas' },
 ];
-const defaultAccounts = ['Tunai', 'BCA', 'Mandiri', 'Gopay', 'OVO'];
+const defaultAccounts = ['Tunai', 'BCA', 'Mandiri', 'BRI', 'BNI', 'Gopay', 'OVO', 'DANA', 'ShopeePay'];
 const defaultIncomeCategories = ['Gaji Bulanan', 'Trading', 'Bonus', 'Investasi', 'Lainnya'];
 const defaultAllocations = [
   { id: '1', name: 'Saving', percent: 50, color: '#3b82f6' },

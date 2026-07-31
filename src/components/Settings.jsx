@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../store/useStore.jsx';
+import AccountLogo from './AccountLogo';
 import { Trash2, Plus, Minus, AlertCircle, Save } from 'lucide-react';
 
 export default function Settings() {
@@ -82,7 +83,7 @@ export default function Settings() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.25rem' }}>
             {accounts.map(acc => (
               <div key={acc} className="flex-between" style={{ padding: '0.6rem 1rem', background: 'var(--bg-input)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', transition: 'all 0.2s' }}>
-                <span style={{ fontWeight: 500 }}>{acc}</span>
+                <AccountLogo name={acc} size={16} />
                 <button onClick={() => handleDeleteAccount(acc)} className="btn" style={{ background: 'none', color: 'var(--accent-expense)', padding: '0.2rem', boxShadow: 'none' }} title={t('delete')}>
                   <Trash2 size={16} />
                 </button>

@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useStore } from '../store/useStore.jsx';
+import AccountLogo from './AccountLogo';
 import { PieChart, Pie, Cell, BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { TrendingUp, TrendingDown, Trash2 } from 'lucide-react';
 
@@ -493,8 +494,11 @@ export default function Dashboard() {
                     {tItem.type === 'income' ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
                   </div>
                   <div>
-                    <h4 className={tItem.type === 'income' ? 'text-income' : 'text-expense'} style={{ fontSize: '0.95rem', fontWeight: 600 }}>{tItem.category}</h4>
-                    <p className="text-secondary" style={{ fontSize: '0.8rem' }}>{tItem.account ? `[${tItem.account}] ` : ''}{tItem.note || t('noNote')}</p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.2rem' }}>
+                      <h4 className={tItem.type === 'income' ? 'text-income' : 'text-expense'} style={{ fontSize: '0.95rem', fontWeight: 600 }}>{tItem.category}</h4>
+                      {tItem.account && <AccountLogo name={tItem.account} size={12} />}
+                    </div>
+                    <p className="text-secondary" style={{ fontSize: '0.8rem' }}>{tItem.note || t('noNote')}</p>
                   </div>
                 </div>
                 <div style={{ textAlign: 'right', display: 'flex', alignItems: 'center', gap: '1rem' }}>
