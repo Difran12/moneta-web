@@ -1,122 +1,164 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import React, { useState, useEffect } from 'react';
+import { useStore } from './store/useStore.jsx';
+import YearlyReport from './components/YearlyReport';
+import Dashboard from './components/Dashboard';
+import Settings from './components/Settings';
+import { Wallet, TrendingUp, TrendingDown, Plus, Trash2, Sun, Moon, Globe, X } from 'lucide-react';
+import './index.css';
 
-function App() {
-  const [count, setCount] = useState(0)
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(amount);
+};
+
+export default function App() {
+  const { transactions, addTransaction, deleteTransaction, accounts, incomeCategories, allocations, lang, setLang, t } = useStore();
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [formData, setFormData] = useState({ type: 'expense', amount: '', category: '', account: accounts[0] || '', note: '' });
+  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark');
+
+  // Prepare data for Recharts (group by date)
+  const chartData = [...transactions].reverse().map(t => ({
+    name: new Date(t.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' }),
+    amount: t.type === 'income' ? t.amount : -t.amount,
+  }));
+
+  const handleAmountChange = (e) => {
+    const rawValue = e.target.value.replace(/[^0-9]/g, '');
+    if (!rawValue) {
+      setFormData({...formData, amount: ''});
+      return;
+    }
+    const formattedValue = Number(rawValue).toLocaleString('en-US');
+    setFormData({...formData, amount: formattedValue});
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!formData.amount || !formData.category) return;
+    const rawAmount = Number(formData.amount.replace(/,/g, ''));
+    addTransaction({
+      ...formData,
+      amount: rawAmount
+    });
+    setFormData({ type: 'expense', amount: '', category: '', account: accounts[0] || '', note: '' });
+    setShowAddForm(false);
+  };
+
+  const toggleLang = () => setLang(lang === 'id' ? 'en' : 'id');
 
   return (
     <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+      <header style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginBottom: '1rem' }}>
+        <div className="flex-between">
+          <div>
+            <h1 style={{ fontSize: '1.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Wallet className="text-brand" /> {t('appTitle')}
+            </h1>
+            <p className="text-secondary">{t('appSubtitle')}</p>
+          </div>
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+            <button className="btn" style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', padding: '0.65rem 1rem', display: 'flex', alignItems: 'center', gap: '0.4rem', fontFamily: 'Outfit, sans-serif', fontWeight: 600 }} onClick={toggleLang} title="Ganti Bahasa / Switch Language">
+              <Globe size={18} /> {lang.toUpperCase()}
+            </button>
+            <button className="btn" style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', padding: '0.65rem' }} onClick={toggleTheme} title="Ganti Tema">
+              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
+            {activeTab === 'dashboard' && (
+              <button className="btn btn-primary animate-fade-in" onClick={() => setShowAddForm(!showAddForm)}>
+                <Plus size={18} /> {showAddForm ? t('cancel') : t('addTransaction')}
+              </button>
+            )}
+          </div>
         </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
+        
+        <div className="tabs-container" style={{ marginBottom: 0 }}>
+          <button className={`tab-btn ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')}>
+            {t('dashboard')}
+          </button>
+          <button className={`tab-btn ${activeTab === 'rekap' ? 'active' : ''}`} onClick={() => setActiveTab('rekap')}>
+            {t('yearlyReport')}
+          </button>
+          <button className={`tab-btn ${activeTab === 'pengaturan' ? 'active' : ''}`} onClick={() => setActiveTab('pengaturan')}>
+            {t('settings')}
+          </button>
         </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+      </header>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+      {showAddForm && (
+        <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowAddForm(false)}>
+          <div className="modal-content">
+            <div className="flex-between" style={{ marginBottom: '1.25rem' }}>
+              <h2 style={{ fontSize: '1.35rem' }}>{t('addNewTransaction')}</h2>
+              <button onClick={() => setShowAddForm(false)} className="btn" style={{ padding: '0.4rem', background: 'none', boxShadow: 'none', color: 'var(--text-secondary)' }} title={t('cancel')}>
+                <X size={20} />
+              </button>
+            </div>
+            <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1rem' }} className="grid-cols-2">
+              <div className="input-group">
+                <label>{t('type')}</label>
+                <select className="input-field" value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})}>
+                  <option value="expense">{t('expense')}</option>
+                  <option value="income">{t('income')}</option>
+                </select>
+              </div>
+              <div className="input-group">
+                <label>{t('amount')}</label>
+                <input type="text" className="input-field" placeholder="100,000" value={formData.amount} onChange={handleAmountChange} required />
+              </div>
+              <div className="input-group">
+                <label>{t('category')}</label>
+                <select className="input-field" value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} required>
+                  <option value="" disabled>{t('selectCategory')}</option>
+                  {formData.type === 'expense' ? (
+                    <>
+                      {allocations.map(a => <option key={a.id} value={a.name}>{a.name}</option>)}
+                    </>
+                  ) : (
+                    <>
+                      {incomeCategories.map(c => <option key={c} value={c}>{c}</option>)}
+                    </>
+                  )}
+                </select>
+              </div>
+              <div className="input-group">
+                <label>{t('account')}</label>
+                <select className="input-field" value={formData.account} onChange={e => setFormData({...formData, account: e.target.value})} required>
+                  <option value="" disabled>{t('selectAccount')}</option>
+                  {accounts.map(acc => <option key={acc} value={acc}>{acc}</option>)}
+                </select>
+              </div>
+              <div className="input-group" style={{ gridColumn: '1 / -1' }}>
+                <label>{t('note')}</label>
+                <input type="text" className="input-field" placeholder={t('notePlaceholder')} value={formData.note} onChange={e => setFormData({...formData, note: e.target.value})} />
+              </div>
+              <div style={{ gridColumn: '1 / -1', display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
+                <button type="button" className="btn" style={{ flex: 1, border: '1px solid var(--border-color)' }} onClick={() => setShowAddForm(false)}>
+                  {t('cancel')}
+                </button>
+                <button type="submit" className="btn btn-primary" style={{ flex: 2 }}>
+                  {t('saveTransaction')}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+      )}
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
+      {activeTab === 'dashboard' ? (
+        <Dashboard />
+      ) : activeTab === 'rekap' ? (
+        <YearlyReport />
+      ) : (
+        <Settings />
+      )}
     </>
-  )
+  );
 }
-
-export default App
