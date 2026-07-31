@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useStore } from '../store/useStore.jsx';
 import AccountLogo from './AccountLogo';
+import UnifiedAccountInput from './UnifiedAccountInput';
 import { BANK_AND_WALLET_CATALOG } from '../utils/bankAndWalletCatalog';
 import { Trash2, Plus, Minus, AlertCircle, Save } from 'lucide-react';
 
@@ -98,47 +99,15 @@ export default function Settings() {
             ))}
           </div>
 
-          {/* Catalog Quick Add Preset Selector */}
-          <div style={{ marginBottom: '1rem', padding: '0.85rem', background: 'rgba(99, 102, 241, 0.08)', borderRadius: '10px', border: '1px solid rgba(99, 102, 241, 0.25)' }}>
-            <label style={{ fontSize: '0.8rem', color: 'var(--text-primary)', fontWeight: 600, marginBottom: '0.4rem', display: 'block' }}>
-              {t('quickAddCatalogLabel')}
-            </label>
-            <select
-              className="input-field"
-              style={{ fontSize: '0.85rem', background: 'var(--bg-panel)', fontWeight: 600 }}
-              onChange={(e) => {
-                const val = e.target.value;
-                if (val && !accounts.includes(val)) {
-                  setAccounts([...accounts, val]);
-                  e.target.value = '';
-                }
-              }}
-            >
-              <option value="">{t('selectOfficialCatalog')}</option>
-              <optgroup label={t('bankIndonesiaGroup')}>
-                {BANK_AND_WALLET_CATALOG.bank.map(b => (
-                  <option key={b.code} value={b.name} disabled={accounts.includes(b.name)}>{b.name} {accounts.includes(b.name) ? t('alreadyAdded') : ''}</option>
-                ))}
-              </optgroup>
-              <optgroup label={t('eWalletGroup')}>
-                {BANK_AND_WALLET_CATALOG.ewallet.map(w => (
-                  <option key={w.code} value={w.name} disabled={accounts.includes(w.name)}>{w.name} {accounts.includes(w.name) ? t('alreadyAdded') : ''}</option>
-                ))}
-              </optgroup>
-            </select>
-          </div>
-
-          <form onSubmit={handleAddAccount} style={{ display: 'flex', gap: '0.5rem' }}>
-            <input 
-              type="text" 
-              value={newAccount} 
-              onChange={e => setNewAccount(e.target.value)} 
-              className="input-field" 
-              placeholder={t('addAccountPlaceholder')} 
-              style={{ flex: 1 }} 
-            />
-            <button type="submit" className="btn btn-primary"><Plus size={18} /></button>
-          </form>
+          {/* Single Unified Account Input with Autocomplete Catalog */}
+          <UnifiedAccountInput
+            existingAccounts={accounts}
+            onAddAccount={(name) => {
+              if (!accounts.includes(name)) {
+                setAccounts([...accounts, name]);
+              }
+            }}
+          />
         </div>
 
         {/* Income Categories */}
