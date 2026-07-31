@@ -1,63 +1,72 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
 :root {
-  /* LIGHT THEME (Dribbble Clean Style) */
+  /* LIGHT THEME (Clean Modern Style) */
   --bg-main: #F4F7FB;
-  --bg-panel: #FFFFFF;
+  --bg-panel: rgba(255, 255, 255, 0.9);
   --bg-input: #F8FAFC;
   --bg-sticky: #FFFFFF;
   --bg-table-header: #F8FAFC;
-  --bg-table-hover: #F8FAFC;
-  --bg-tab: #F1F5F9;
+  --bg-table-hover: #F1F5F9;
+  --bg-tab: #E2E8F0;
   
   --border-color: #E2E8F0;
-  --border-focus: #3B82F6;
+  --border-focus: #6366F1;
   
-  --text-primary: #1E293B;
+  --text-primary: #0F172A;
   --text-secondary: #64748B;
   
   --accent-income: #10B981;
   --accent-income-bg: #D1FAE5;
-  --accent-expense: #F43F5E;
-  --accent-expense-bg: #FFE4E6;
+  --accent-expense: #EF4444;
+  --accent-expense-bg: #FEE2E2;
   
-  --accent-brand: #1D4ED8;
-  --accent-brand-light: #3B82F6;
+  --accent-brand: #6366F1;
+  --accent-brand-light: #818CF8;
   --accent-cyan: #06B6D4;
   
   /* Brand Gradients for Hero Cards */
-  --bg-gradient-brand: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+  --bg-gradient-brand: linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #2563EB 100%);
   
-  /* Super Soft Shadows */
-  --shadow-card: 0px 10px 40px -10px rgba(0, 0, 0, 0.06);
-  --shadow-card-hover: 0px 15px 50px -10px rgba(0, 0, 0, 0.1);
-  --shadow-glow: 0px 10px 20px rgba(59, 130, 246, 0.25);
+  /* Super Soft Shadows & Glows */
+  --shadow-card: 0px 10px 30px -5px rgba(0, 0, 0, 0.05);
+  --shadow-card-hover: 0px 15px 40px -5px rgba(0, 0, 0, 0.08);
+  --shadow-glow: 0px 10px 25px rgba(99, 102, 241, 0.35);
   
-  --radius-xl: 24px;
-  --radius-lg: 16px;
-  --radius-md: 12px;
+  --radius-xl: 20px;
+  --radius-lg: 14px;
+  --radius-md: 10px;
   --radius-sm: 8px;
 }
 
 [data-theme='dark'] {
-  /* DARK THEME (Adapted for Dribbble Style) */
-  --bg-main: #121212;
-  --bg-panel: #1E1E1E;
-  --bg-input: #2D2D2D;
-  --bg-sticky: #1E1E1E;
-  --bg-table-header: #252525;
-  --bg-table-hover: #2D2D2D;
-  --bg-tab: #252525;
+  /* ULTRA PREMIUM MIDNIGHT GLASSMORPHISM (Matching Showcase) */
+  --bg-main: #0B0F19;
+  --bg-panel: rgba(19, 27, 46, 0.75);
+  --bg-input: #172036;
+  --bg-sticky: #131B2E;
+  --bg-table-header: #172036;
+  --bg-table-hover: #1E293B;
+  --bg-tab: #172036;
 
-  --border-color: #333333;
-  --border-focus: #3B82F6;
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-focus: #6366F1;
 
   --text-primary: #F8FAFC;
   --text-secondary: #94A3B8;
 
-  --shadow-card: 0px 10px 40px -10px rgba(0, 0, 0, 0.4);
-  --shadow-card-hover: 0px 15px 50px -10px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0px 10px 20px rgba(59, 130, 246, 0.3);
+  --accent-income: #10B981;
+  --accent-income-bg: rgba(16, 185, 129, 0.15);
+  --accent-expense: #EF4444;
+  --accent-expense-bg: rgba(239, 68, 68, 0.15);
+
+  --accent-brand: #6366F1;
+  --accent-brand-light: #818CF8;
+
+  --bg-gradient-brand: linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #2563EB 100%);
+  --shadow-card: 0px 10px 30px -5px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.05);
+  --shadow-card-hover: 0px 15px 45px -5px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  --shadow-glow: 0px 10px 30px rgba(99, 102, 241, 0.45);
 }
 
 * {
@@ -97,10 +106,12 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--text-secondary);
 }
 
-/* Solid Clean Card (Replaces Glassmorphism) */
+/* Glassmorphism Card Style */
 .glass-card {
   background: var(--bg-panel);
-  border: none;
+  border: 1px solid var(--border-color);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-radius: var(--radius-xl);
   padding: 1.5rem;
   box-shadow: var(--shadow-card);
