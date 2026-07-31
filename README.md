@@ -79,7 +79,7 @@ src/
 
 1. **Clone the Repository**
    ```bash
-   git clone https://github.com/YOUR_USERNAME/money-tracker-web.git
+   git clone https://github.com/Difran12/money-tracker-web.git
    cd money-tracker-web
    ```
 
