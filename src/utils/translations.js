@@ -1,6 +1,6 @@
 export const translations = {
   id: {
-    appTitle: "Money Tracker Web",
+    appTitle: "Moneta",
     appSubtitle: "Pelacakan keuangan offline yang aman",
     dashboard: "Dashboard",
     yearlyReport: "Rekap Tahunan",
@@ -66,7 +66,7 @@ export const translations = {
     summary: "Ringkasan Tahunan"
   },
   en: {
-    appTitle: "Money Tracker Web",
+    appTitle: "Moneta",
     appSubtitle: "Secure offline financial tracking",
     dashboard: "Dashboard",
     yearlyReport: "Yearly Report",

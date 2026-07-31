@@ -1,4 +1,4 @@
-# 💎 Money Tracker Web — Personal Finance & Budget Management Platform
+# 💎 Moneta — Personal Finance & Budget Management Platform
 
 > A modern, high-performance, and visually stunning web application for personal financial tracking, budget allocation, and cashflow analytics built with **React 19**, **Vite**, and **Recharts**.
 
@@ -79,8 +79,8 @@ src/
 
 1. **Clone the Repository**
    ```bash
-   git clone https://github.com/Difran12/money-tracker-web.git
-   cd money-tracker-web
+   git clone https://github.com/Difran12/moneta-web.git
+   cd moneta-web
    ```
 
 2. **Install Dependencies**
