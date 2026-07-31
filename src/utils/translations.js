@@ -57,6 +57,14 @@ export const translations = {
     totalAllocation: "Total Alokasi",
     saveAllocations: "Simpan Perubahan Alokasi",
     savedSuccess: "Pengaturan Berhasil Disimpan!",
+    quickAddCatalogLabel: "Tambah Cepat dari Katalog Bank / E-Wallet Indonesia:",
+    selectOfficialCatalog: "+ Pilih Bank / E-Wallet Resmi...",
+    allCategories: "Semua Kategori",
+    searchBankWalletPlaceholder: "Cari bank / wallet...",
+    alreadyAdded: "(Sudah Ada)",
+    bankIndonesiaGroup: "🏦 Bank Indonesia (SNAP BI Standard)",
+    eWalletGroup: "📱 E-Wallet / Dompet Digital",
+    cashGroup: "💵 Cash / Tunai",
     
     // Savings & Debts
     savingsAndDebts: "Investasi & Hutang",
@@ -138,6 +146,14 @@ export const translations = {
     totalAllocation: "Total Allocation",
     saveAllocations: "Save Allocation Changes",
     savedSuccess: "Settings Saved Successfully!",
+    quickAddCatalogLabel: "Quick Add from Official Bank & E-Wallet Catalog:",
+    selectOfficialCatalog: "+ Select Official Bank / E-Wallet...",
+    allCategories: "All Categories",
+    searchBankWalletPlaceholder: "Search bank / wallet...",
+    alreadyAdded: "(Already Added)",
+    bankIndonesiaGroup: "🏦 Indonesian Banks (SNAP BI Standard)",
+    eWalletGroup: "📱 E-Wallets / Digital Wallets",
+    cashGroup: "💵 Cash / Currency",
     
     // Savings & Debts
     savingsAndDebts: "Investments & Debts",

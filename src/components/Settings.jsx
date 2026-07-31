@@ -99,11 +99,13 @@ export default function Settings() {
           </div>
 
           {/* Catalog Quick Add Preset Selector */}
-          <div style={{ marginBottom: '0.75rem' }}>
-            <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', display: 'block' }}>Tambah Cepat dari Katalog Bank / E-Wallet Indonesia:</label>
+          <div style={{ marginBottom: '1rem', padding: '0.85rem', background: 'rgba(99, 102, 241, 0.08)', borderRadius: '10px', border: '1px solid rgba(99, 102, 241, 0.25)' }}>
+            <label style={{ fontSize: '0.8rem', color: 'var(--text-primary)', fontWeight: 600, marginBottom: '0.4rem', display: 'block' }}>
+              {t('quickAddCatalogLabel')}
+            </label>
             <select
               className="input-field"
-              style={{ fontSize: '0.85rem' }}
+              style={{ fontSize: '0.85rem', background: 'var(--bg-panel)', fontWeight: 600 }}
               onChange={(e) => {
                 const val = e.target.value;
                 if (val && !accounts.includes(val)) {
@@ -112,15 +114,15 @@ export default function Settings() {
                 }
               }}
             >
-              <option value="">+ Pilih Bank / E-Wallet Resmi...</option>
-              <optgroup label="🏦 Bank Indonesia (SNAP BI Standard)">
+              <option value="">{t('selectOfficialCatalog')}</option>
+              <optgroup label={t('bankIndonesiaGroup')}>
                 {BANK_AND_WALLET_CATALOG.bank.map(b => (
-                  <option key={b.code} value={b.name} disabled={accounts.includes(b.name)}>{b.name} {accounts.includes(b.name) ? '(Sudah Ada)' : ''}</option>
+                  <option key={b.code} value={b.name} disabled={accounts.includes(b.name)}>{b.name} {accounts.includes(b.name) ? t('alreadyAdded') : ''}</option>
                 ))}
               </optgroup>
-              <optgroup label="📱 E-Wallet / Dompet Digital">
+              <optgroup label={t('eWalletGroup')}>
                 {BANK_AND_WALLET_CATALOG.ewallet.map(w => (
-                  <option key={w.code} value={w.name} disabled={accounts.includes(w.name)}>{w.name} {accounts.includes(w.name) ? '(Sudah Ada)' : ''}</option>
+                  <option key={w.code} value={w.name} disabled={accounts.includes(w.name)}>{w.name} {accounts.includes(w.name) ? t('alreadyAdded') : ''}</option>
                 ))}
               </optgroup>
             </select>
