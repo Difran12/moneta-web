@@ -15,7 +15,8 @@ export default function App() {
   const { transactions, addTransaction, deleteTransaction, accounts, incomeCategories, allocations, lang, setLang, t } = useStore();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showAddForm, setShowAddForm] = useState(false);
-  const [formData, setFormData] = useState({ type: 'expense', amount: '', category: '', account: accounts[0] || '', note: '' });
+  const todayStr = new Date().toISOString().split('T')[0];
+  const [formData, setFormData] = useState({ type: 'expense', amount: '', category: '', account: accounts[0] || '', note: '', date: todayStr });
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
 
   useEffect(() => {
@@ -49,7 +50,7 @@ export default function App() {
       ...formData,
       amount: rawAmount
     });
-    setFormData({ type: 'expense', amount: '', category: '', account: accounts[0] || '', note: '' });
+    setFormData({ type: 'expense', amount: '', category: '', account: accounts[0] || '', note: '', date: todayStr });
     setShowAddForm(false);
   };
 
@@ -138,6 +139,10 @@ export default function App() {
                   <option value="" disabled>{t('selectAccount')}</option>
                   {accounts.map(acc => <option key={acc} value={acc}>{acc}</option>)}
                 </select>
+              </div>
+              <div className="input-group">
+                <label>{t('dateLabel')}</label>
+                <input type="date" className="input-field" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} required />
               </div>
               <div className="input-group" style={{ gridColumn: '1 / -1' }}>
                 <label>{t('note')}</label>

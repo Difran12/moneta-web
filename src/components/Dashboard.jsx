@@ -467,7 +467,21 @@ export default function Dashboard() {
               <p className="text-secondary text-center" style={{ padding: '2rem' }}>{t('noTransactions')}</p>
             ) : transactions.filter(tItem => isMatchTimeframe(tItem.date)).map(tItem => (
               <div key={tItem.id} className="flex-between" style={{ padding: '0.85rem 1rem', background: 'var(--bg-input)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
-                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: '0.85rem', alignItems: 'center' }}>
+                  <div style={{
+                    background: 'var(--bg-tab)',
+                    padding: '0.35rem 0.6rem',
+                    borderRadius: '8px',
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    color: 'var(--text-secondary)',
+                    textAlign: 'center',
+                    minWidth: '56px',
+                    fontFamily: 'Outfit, sans-serif',
+                    border: '1px solid var(--border-color)'
+                  }}>
+                    {new Date(tItem.date).toLocaleDateString(lang === 'en' ? 'en-US' : 'id-ID', { month: 'short', day: '2-digit' })}
+                  </div>
                   <div className={`badge-icon ${tItem.type}`}>
                     {tItem.type === 'income' ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
                   </div>

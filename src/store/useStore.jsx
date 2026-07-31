@@ -91,7 +91,7 @@ export function StoreProvider({ children }) {
     const newTx = {
       ...transaction,
       id: Date.now(),
-      date: new Date().toISOString()
+      date: transaction.date ? new Date(transaction.date).toISOString() : new Date().toISOString()
     };
     setTransactions(prev => [newTx, ...prev]);
   };
