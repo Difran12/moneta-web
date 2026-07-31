@@ -5,7 +5,7 @@ import Dashboard from './components/Dashboard';
 import Settings from './components/Settings';
 import SavingsAndDebts from './components/SavingsAndDebts';
 import SearchableAccountSelect from './components/SearchableAccountSelect';
-import { Wallet, TrendingUp, TrendingDown, Plus, Trash2, Sun, Moon, Globe, X } from 'lucide-react';
+import { Wallet, TrendingUp, TrendingDown, Plus, Trash2, Sun, Moon, Globe, X, AlertCircle } from 'lucide-react';
 import './index.css';
 
 const formatCurrency = (amount) => {
@@ -47,15 +47,36 @@ export default function App() {
     setFormData({...formData, amount: formattedValue});
   };
 
+  const [formError, setFormError] = useState('');
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.amount || !formData.category) return;
-    const rawAmount = Number(formData.amount.replace(/,/g, ''));
+    setFormError('');
+    const rawAmount = Number((formData.amount || '').replace(/,/g, ''));
+    
+    if (!rawAmount || rawAmount <= 0) {
+      setFormError(t('invalidAmountError'));
+      return;
+    }
+    if (!formData.category) {
+      setFormError(t('invalidCategoryError'));
+      return;
+    }
+    if (!formData.account) {
+      setFormError(t('invalidAccountError'));
+      return;
+    }
+    if (!formData.date) {
+      setFormError(t('invalidDateError'));
+      return;
+    }
+
     addTransaction({
       ...formData,
       amount: rawAmount
     });
     setFormData({ type: 'expense', amount: '', category: '', account: accounts[0] || '', note: '', date: getNowDateTimeString() });
+    setFormError('');
     setShowAddForm(false);
   };
 
@@ -111,6 +132,11 @@ export default function App() {
                 <X size={20} />
               </button>
             </div>
+            {formError && (
+              <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.4)', color: '#ef4444', padding: '0.6rem 0.85rem', borderRadius: '8px', fontSize: '0.82rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <AlertCircle size={16} /> {formError}
+              </div>
+            )}
             <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1rem' }} className="grid-cols-2">
               <div className="input-group">
                 <label>{t('type')}</label>

@@ -100,6 +100,13 @@ export function StoreProvider({ children }) {
     setTransactions(prev => prev.filter(t => t.id !== id));
   };
 
+  const updateTransaction = (updatedTx) => {
+    setTransactions(prev => prev.map(t => t.id === updatedTx.id ? {
+      ...updatedTx,
+      date: updatedTx.date ? new Date(updatedTx.date).toISOString() : t.date
+    } : t));
+  };
+
   const addSavingsGoal = (goal) => {
     setSavingsGoals(prev => [...prev, { ...goal, id: Date.now().toString(), current: Number(goal.current || 0) }]);
   };
@@ -143,6 +150,7 @@ export function StoreProvider({ children }) {
     <StoreContext.Provider value={{
       transactions,
       addTransaction,
+      updateTransaction,
       deleteTransaction,
       getBalance,
       getIncome,

@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { useStore } from '../store/useStore.jsx';
 import AccountLogo from './AccountLogo';
+import SearchableAccountSelect from './SearchableAccountSelect';
 import { PieChart, Pie, Cell, BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
-import { TrendingUp, TrendingDown, Trash2 } from 'lucide-react';
+import { TrendingUp, TrendingDown, Trash2, Pencil, X, AlertCircle } from 'lucide-react';
 
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount || 0);
@@ -55,13 +56,66 @@ const MONTHS_ID = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli
 const MONTHS_EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 export default function Dashboard() {
-  const { transactions, allocations, deleteTransaction, lang, t } = useStore();
+  const { transactions, allocations, deleteTransaction, updateTransaction, accounts, incomeCategories, lang, t } = useStore();
   const MONTHS = lang === 'en' ? MONTHS_EN : MONTHS_ID;
   
   const currentDate = new Date();
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth());
   const [timeframe, setTimeframe] = useState('monthly'); // 'daily' | 'weekly' | 'monthly' | 'yearly'
+
+  // Edit Transaction State
+  const [editingTx, setEditingTx] = useState(null);
+  const [editForm, setEditForm] = useState({ type: 'expense', amount: '', category: '', account: '', note: '', date: '' });
+  const [editError, setEditError] = useState('');
+
+  const startEdit = (tItem) => {
+    const d = new Date(tItem.date);
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    const dateStr = d.toISOString().slice(0, 16);
+
+    setEditingTx(tItem);
+    setEditForm({
+      type: tItem.type,
+      amount: tItem.amount.toLocaleString('en-US'),
+      category: tItem.category,
+      account: tItem.account || accounts[0] || '',
+      note: tItem.note || '',
+      date: dateStr
+    });
+    setEditError('');
+  };
+
+  const handleUpdateSubmit = (e) => {
+    e.preventDefault();
+    setEditError('');
+    const rawAmount = Number((editForm.amount || '').toString().replace(/,/g, ''));
+    
+    if (!rawAmount || rawAmount <= 0) {
+      setEditError(t('invalidAmountError'));
+      return;
+    }
+    if (!editForm.category) {
+      setEditError(t('invalidCategoryError'));
+      return;
+    }
+    if (!editForm.account) {
+      setEditError(t('invalidAccountError'));
+      return;
+    }
+    if (!editForm.date) {
+      setEditError(t('invalidDateError'));
+      return;
+    }
+
+    updateTransaction({
+      ...editingTx,
+      ...editForm,
+      amount: rawAmount
+    });
+    setEditingTx(null);
+    setEditError('');
+  };
 
   const availableYears = useMemo(() => {
     const years = new Set(transactions.map(t => new Date(t.date).getFullYear()));
@@ -501,10 +555,13 @@ export default function Dashboard() {
                     <p className="text-secondary" style={{ fontSize: '0.8rem' }}>{tItem.note || t('noNote')}</p>
                   </div>
                 </div>
-                <div style={{ textAlign: 'right', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ textAlign: 'right', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                   <span className={tItem.type === 'income' ? 'text-income' : 'text-expense'} style={{ fontWeight: 600, fontFamily: 'Outfit, sans-serif' }}>
                     {tItem.type === 'income' ? '+' : '-'}{formatCurrency(tItem.amount)}
                   </span>
+                  <button onClick={() => startEdit(tItem)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent-brand)' }} title={t('editTransaction')}>
+                    <Pencil size={16} />
+                  </button>
                   <button onClick={() => deleteTransaction(tItem.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent-expense)' }} title={t('delete')}>
                     <Trash2 size={16} />
                   </button>
@@ -514,6 +571,89 @@ export default function Dashboard() {
           </div>
         </div>
       </section>
+
+      {/* Edit Transaction Modal Pop-Up */}
+      {editingTx && (
+        <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setEditingTx(null)}>
+          <div className="modal-content">
+            <div className="flex-between" style={{ marginBottom: '1.25rem' }}>
+              <h2 style={{ fontSize: '1.35rem' }}>{t('editTransaction')}</h2>
+              <button onClick={() => setEditingTx(null)} className="btn" style={{ padding: '0.4rem', background: 'none', boxShadow: 'none', color: 'var(--text-secondary)' }}>
+                <X size={20} />
+              </button>
+            </div>
+
+            {editError && (
+              <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.4)', color: '#ef4444', padding: '0.6rem 0.85rem', borderRadius: '8px', fontSize: '0.82rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <AlertCircle size={16} /> {editError}
+              </div>
+            )}
+
+            <form onSubmit={handleUpdateSubmit} style={{ display: 'grid', gap: '1rem' }} className="grid-cols-2">
+              <div className="input-group">
+                <label>{t('type')}</label>
+                <select className="input-field" value={editForm.type} onChange={e => setEditForm({...editForm, type: e.target.value})}>
+                  <option value="expense">{t('expense')}</option>
+                  <option value="income">{t('income')}</option>
+                </select>
+              </div>
+              <div className="input-group">
+                <label>{t('amount')}</label>
+                <input 
+                  type="text" 
+                  className="input-field" 
+                  value={editForm.amount} 
+                  onChange={(e) => {
+                    const rawValue = e.target.value.replace(/[^0-9]/g, '');
+                    const formattedValue = rawValue ? Number(rawValue).toLocaleString('en-US') : '';
+                    setEditForm({...editForm, amount: formattedValue});
+                  }} 
+                  required 
+                />
+              </div>
+              <div className="input-group">
+                <label>{t('category')}</label>
+                <select className="input-field" value={editForm.category} onChange={e => setEditForm({...editForm, category: e.target.value})} required>
+                  <option value="" disabled>{t('selectCategory')}</option>
+                  {editForm.type === 'expense' ? (
+                    <>
+                      {allocations.map(a => <option key={a.id} value={a.name}>{a.name}</option>)}
+                    </>
+                  ) : (
+                    <>
+                      {incomeCategories.map(c => <option key={c} value={c}>{c}</option>)}
+                    </>
+                  )}
+                </select>
+              </div>
+              <div className="input-group">
+                <label>{t('account')}</label>
+                <SearchableAccountSelect 
+                  accounts={accounts} 
+                  value={editForm.account} 
+                  onChange={val => setEditForm({...editForm, account: val})} 
+                />
+              </div>
+              <div className="input-group">
+                <label>{t('dateLabel')}</label>
+                <input type="datetime-local" className="input-field" value={editForm.date} onChange={e => setEditForm({...editForm, date: e.target.value})} required />
+              </div>
+              <div className="input-group" style={{ gridColumn: '1 / -1' }}>
+                <label>{t('note')}</label>
+                <input type="text" className="input-field" value={editForm.note} onChange={e => setEditForm({...editForm, note: e.target.value})} />
+              </div>
+              <div style={{ gridColumn: '1 / -1', display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
+                <button type="button" className="btn" style={{ flex: 1, border: '1px solid var(--border-color)' }} onClick={() => setEditingTx(null)}>
+                  {t('cancel')}
+                </button>
+                <button type="submit" className="btn btn-primary" style={{ flex: 2 }}>
+                  {t('updateTransactionBtn')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
