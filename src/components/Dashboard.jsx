@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useStore } from '../store/useStore.jsx';
-import { PieChart, Pie, Cell, BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { TrendingUp, TrendingDown, Trash2 } from 'lucide-react';
 
 const formatCurrency = (amount) => {
@@ -11,40 +11,39 @@ const formatPercent = (percent) => {
   return new Intl.NumberFormat('id-ID', { style: 'percent', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(percent);
 };
 
-const formatYAxis = (val) => {
-  if (!val || val === 0) return '0';
-  if (Math.abs(val) >= 1000000000) return `Rp${(val / 1000000000).toFixed(1)}B`;
-  if (Math.abs(val) >= 1000000) return `Rp${(val / 1000000).toFixed(1)}M`;
-  if (Math.abs(val) >= 1000) return `Rp${(val / 1000).toFixed(0)}k`;
-  return `Rp${val}`;
+const formatMonetaYAxis = (val) => {
+  if (!val || val === 0) return '$0';
+  const prefix = val > 0 ? '+' : '-';
+  const absVal = Math.abs(val);
+  if (absVal >= 1000000000) return `${prefix}Rp${(absVal / 1000000000).toFixed(1)}B`;
+  if (absVal >= 1000000) return `${prefix}Rp${(absVal / 1000000).toFixed(1)}M`;
+  if (absVal >= 1000) return `${prefix}Rp${(absVal / 1000).toFixed(0)}k`;
+  return `${prefix}Rp${absVal}`;
 };
 
-const CustomTooltip = ({ active, payload, label }) => {
+const CustomMonetaTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
+    const inc = payload.find(p => p.dataKey === 'income')?.value || 0;
+    const exp = Math.abs(payload.find(p => p.dataKey === 'expenseInverted')?.value || 0);
+
     return (
       <div style={{
-        background: 'var(--bg-panel)',
-        border: '1px solid var(--border-color)',
-        padding: '0.85rem 1.1rem',
-        borderRadius: '14px',
-        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.4)',
+        background: 'rgba(15, 23, 42, 0.95)',
+        border: '1px solid rgba(255, 255, 255, 0.15)',
+        borderRadius: '12px',
+        padding: '0.65rem 1.1rem',
         backdropFilter: 'blur(12px)',
-        minWidth: '170px'
+        boxShadow: '0 12px 35px -5px rgba(0, 0, 0, 0.6)',
+        textAlign: 'center'
       }}>
-        <p style={{ fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.6rem', color: 'var(--text-secondary)' }}>
+        <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#94a3b8', marginBottom: '0.35rem' }}>
           {label}
-        </p>
-        {payload.map((entry, index) => (
-          <div key={`item-${index}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', marginTop: '0.3rem' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--text-primary)' }}>
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: entry.color }} />
-              {entry.name}
-            </span>
-            <span style={{ fontWeight: 700, fontSize: '0.9rem', color: entry.color, fontFamily: 'Outfit, sans-serif' }}>
-              {formatCurrency(entry.value)}
-            </span>
-          </div>
-        ))}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.85rem', fontWeight: 700, fontFamily: 'Outfit, sans-serif' }}>
+          <span style={{ color: '#10b981' }}>+{formatCurrency(inc)}</span>
+          <span style={{ color: 'rgba(255,255,255,0.2)' }}>|</span>
+          <span style={{ color: '#ef4444' }}>-{formatCurrency(exp)}</span>
+        </div>
       </div>
     );
   }
@@ -126,7 +125,6 @@ export default function Dashboard() {
     const data = [];
     
     if (timeframe === 'daily') {
-      // Hours of the day or 7 past days
       const days = 7;
       for (let i = days - 1; i >= 0; i--) {
         const d = new Date();
@@ -145,8 +143,8 @@ export default function Dashboard() {
         
         data.push({
           day: dayLabel,
-          [t('expense')]: exp,
-          [t('income')]: inc
+          income: inc,
+          expenseInverted: -exp
         });
       }
     } else if (timeframe === 'weekly') {
@@ -168,8 +166,8 @@ export default function Dashboard() {
         
         data.push({
           day: dayLabel,
-          [t('expense')]: exp,
-          [t('income')]: inc
+          income: inc,
+          expenseInverted: -exp
         });
       }
     } else if (timeframe === 'yearly') {
@@ -186,8 +184,8 @@ export default function Dashboard() {
         
         data.push({
           day: MONTHS[m].slice(0, 3),
-          [t('expense')]: exp,
-          [t('income')]: inc
+          income: inc,
+          expenseInverted: -exp
         });
       }
     } else {
@@ -211,8 +209,8 @@ export default function Dashboard() {
       for (let i = 1; i <= daysInMonth; i++) {
         data.push({
           day: i.toString(),
-          [t('expense')]: dailyExpenses[i] || 0,
-          [t('income')]: dailyIncome[i] || 0
+          income: dailyIncome[i] || 0,
+          expenseInverted: -(dailyExpenses[i] || 0)
         });
       }
     }
@@ -299,28 +297,28 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Premium Area Chart (Cashflow Trend) */}
-      <div className="glass-card" style={{ height: '340px', display: 'flex', flexDirection: 'column', padding: '1.25rem 1.5rem' }}>
-        <div className="flex-between" style={{ marginBottom: '1rem' }}>
+      {/* Premium Moneta Dual Cashflow Trend Chart (As in Showcase Image) */}
+      <div className="glass-card" style={{ height: '370px', display: 'flex', flexDirection: 'column', padding: '1.25rem 1.5rem' }}>
+        <div className="flex-between" style={{ marginBottom: '0.75rem' }}>
           <div>
-            <h3 style={{ color: 'var(--text-primary)', fontSize: '1.1rem', fontWeight: 700 }}>{t('dailyCashflow')}</h3>
-            <p className="text-secondary" style={{ fontSize: '0.8rem' }}>{t('income')} vs {t('expense')} ({t(timeframe)})</p>
+            <h3 style={{ color: 'var(--text-primary)', fontSize: '1.15rem', fontWeight: 700 }}>{t('dailyCashflow')}</h3>
+            <p className="text-secondary" style={{ fontSize: '0.8rem' }}>{t('income')} & {t('expense')} Trend ({t(timeframe)})</p>
           </div>
         </div>
         
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={lineChartData} margin={{ top: 15, right: 25, left: 10, bottom: 5 }}>
+          <AreaChart data={lineChartData} margin={{ top: 20, right: 20, left: 10, bottom: 0 }}>
             <defs>
               <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#10b981" stopOpacity={0.45} />
+                <stop offset="5%" stopColor="#10b981" stopOpacity={0.5} />
                 <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
               </linearGradient>
-              <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#ef4444" stopOpacity={0.45} />
+              <linearGradient id="expenseGradient" x1="0" y1="1" x2="0" y2="0">
+                <stop offset="5%" stopColor="#ef4444" stopOpacity={0.5} />
                 <stop offset="95%" stopColor="#ef4444" stopOpacity={0.0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" opacity={0.35} vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" opacity={0.25} vertical={false} />
             <XAxis 
               dataKey="day" 
               stroke="var(--text-secondary)" 
@@ -331,36 +329,49 @@ export default function Dashboard() {
             <YAxis 
               stroke="var(--text-secondary)" 
               tick={{ fill: 'var(--text-secondary)', fontSize: 11, fontWeight: 500 }} 
-              tickFormatter={formatYAxis} 
+              tickFormatter={formatMonetaYAxis} 
               axisLine={false} 
               tickLine={false}
             />
-            <RechartsTooltip content={<CustomTooltip />} />
-            <Legend 
-              verticalAlign="top" 
-              align="right" 
-              wrapperStyle={{ fontFamily: 'Outfit, sans-serif', fontSize: '12px', paddingBottom: '12px' }} 
-            />
+            <ReferenceLine y={0} stroke="var(--border-color)" strokeDasharray="3 3" />
+            <RechartsTooltip content={<CustomMonetaTooltip />} />
+            
             <Area 
               type="monotone" 
-              dataKey={t('income')} 
+              dataKey="income" 
+              name={t('income')}
               stroke="#10b981" 
               strokeWidth={3} 
               fillOpacity={1} 
               fill="url(#incomeGradient)" 
-              activeDot={{ r: 6, strokeWidth: 0, fill: '#10b981' }} 
+              dot={{ r: 4, fill: '#ffffff', stroke: '#10b981', strokeWidth: 2 }}
+              activeDot={{ r: 6, fill: '#ffffff', stroke: '#10b981', strokeWidth: 3 }} 
             />
             <Area 
               type="monotone" 
-              dataKey={t('expense')} 
+              dataKey="expenseInverted" 
+              name={t('expense')}
               stroke="#ef4444" 
               strokeWidth={3} 
               fillOpacity={1} 
               fill="url(#expenseGradient)" 
-              activeDot={{ r: 6, strokeWidth: 0, fill: '#ef4444' }} 
+              dot={{ r: 4, fill: '#ffffff', stroke: '#ef4444', strokeWidth: 2 }}
+              activeDot={{ r: 6, fill: '#ffffff', stroke: '#ef4444', strokeWidth: 3 }} 
             />
           </AreaChart>
         </ResponsiveContainer>
+
+        {/* Custom Legend at Bottom Center */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', marginTop: '0.4rem', fontSize: '0.85rem', fontWeight: 600 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: '#10b981' }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 8px #10b981' }} />
+            {t('income')}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: '#ef4444' }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444', boxShadow: '0 0 8px #ef4444' }} />
+            {t('expense')}
+          </div>
+        </div>
       </div>
 
       {/* Table Budget vs Actual */}
