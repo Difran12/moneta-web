@@ -141,7 +141,15 @@ export default function App() {
                 <label>{t('account')}</label>
                 <select className="input-field" value={formData.account} onChange={e => setFormData({...formData, account: e.target.value})} required>
                   <option value="" disabled>{t('selectAccount')}</option>
-                  {accounts.map(acc => <option key={acc} value={acc}>{acc}</option>)}
+                  <optgroup label="💵 Cash / Tunai">
+                    {accounts.filter(a => a.toLowerCase().includes('tunai') || a.toLowerCase().includes('cash')).map(acc => <option key={acc} value={acc}>{acc}</option>)}
+                  </optgroup>
+                  <optgroup label="🏦 Bank Digital & Konvensional">
+                    {accounts.filter(a => !a.toLowerCase().includes('tunai') && !a.toLowerCase().includes('cash') && !['gopay','ovo','dana','shopee','spay','link','linkaja'].some(w => a.toLowerCase().includes(w))).map(acc => <option key={acc} value={acc}>{acc}</option>)}
+                  </optgroup>
+                  <optgroup label="📱 E-Wallet & Dompet Digital">
+                    {accounts.filter(a => ['gopay','ovo','dana','shopee','spay','link','linkaja'].some(w => a.toLowerCase().includes(w))).map(acc => <option key={acc} value={acc}>{acc}</option>)}
+                  </optgroup>
                 </select>
               </div>
               <div className="input-group">

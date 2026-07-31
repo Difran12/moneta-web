@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useStore } from '../store/useStore.jsx';
 import AccountLogo from './AccountLogo';
+import { BANK_AND_WALLET_CATALOG } from '../utils/bankAndWalletCatalog';
 import { Trash2, Plus, Minus, AlertCircle, Save } from 'lucide-react';
 
 export default function Settings() {
@@ -77,10 +78,16 @@ export default function Settings() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', paddingBottom: '2rem' }}>
       
       <div className="grid-cols-2" style={{ gap: '2rem' }}>
-        {/* Account Types */}
+        {/* Account Types (Bank & E-Wallet Categories) */}
         <div className="glass-card animate-fade-in">
-          <h3 style={{ marginBottom: '1.25rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem', fontSize: '1.1rem' }}>{t('accountTypesTitle')}</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.25rem' }}>
+          <div className="flex-between" style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
+            <h3 style={{ fontSize: '1.1rem' }}>{t('accountTypesTitle')}</h3>
+            <span style={{ fontSize: '0.75rem', background: 'var(--bg-tab)', padding: '0.2rem 0.5rem', borderRadius: '6px', color: 'var(--text-secondary)' }}>
+              Bank & E-Wallet Catalog
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.25rem', maxHeight: '250px', overflowY: 'auto', paddingRight: '4px' }}>
             {accounts.map(acc => (
               <div key={acc} className="flex-between" style={{ padding: '0.6rem 1rem', background: 'var(--bg-input)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', transition: 'all 0.2s' }}>
                 <AccountLogo name={acc} size={16} />
@@ -90,6 +97,35 @@ export default function Settings() {
               </div>
             ))}
           </div>
+
+          {/* Catalog Quick Add Preset Selector */}
+          <div style={{ marginBottom: '0.75rem' }}>
+            <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', display: 'block' }}>Tambah Cepat dari Katalog Bank / E-Wallet Indonesia:</label>
+            <select
+              className="input-field"
+              style={{ fontSize: '0.85rem' }}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val && !accounts.includes(val)) {
+                  setAccounts([...accounts, val]);
+                  e.target.value = '';
+                }
+              }}
+            >
+              <option value="">+ Pilih Bank / E-Wallet Resmi...</option>
+              <optgroup label="🏦 Bank Indonesia (SNAP BI Standard)">
+                {BANK_AND_WALLET_CATALOG.bank.map(b => (
+                  <option key={b.code} value={b.name} disabled={accounts.includes(b.name)}>{b.name} {accounts.includes(b.name) ? '(Sudah Ada)' : ''}</option>
+                ))}
+              </optgroup>
+              <optgroup label="📱 E-Wallet / Dompet Digital">
+                {BANK_AND_WALLET_CATALOG.ewallet.map(w => (
+                  <option key={w.code} value={w.name} disabled={accounts.includes(w.name)}>{w.name} {accounts.includes(w.name) ? '(Sudah Ada)' : ''}</option>
+                ))}
+              </optgroup>
+            </select>
+          </div>
+
           <form onSubmit={handleAddAccount} style={{ display: 'flex', gap: '0.5rem' }}>
             <input 
               type="text" 
