@@ -470,17 +470,24 @@ export default function Dashboard() {
                 <div style={{ display: 'flex', gap: '0.85rem', alignItems: 'center' }}>
                   <div style={{
                     background: 'var(--bg-tab)',
-                    padding: '0.35rem 0.6rem',
+                    padding: '0.35rem 0.65rem',
                     borderRadius: '8px',
                     fontSize: '0.75rem',
                     fontWeight: 700,
                     color: 'var(--text-secondary)',
                     textAlign: 'center',
-                    minWidth: '56px',
+                    minWidth: '80px',
                     fontFamily: 'Outfit, sans-serif',
-                    border: '1px solid var(--border-color)'
+                    border: '1px solid var(--border-color)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    lineHeight: '1.25'
                   }}>
-                    {new Date(tItem.date).toLocaleDateString(lang === 'en' ? 'en-US' : 'id-ID', { month: 'short', day: '2-digit' })}
+                    <span>{new Date(tItem.date).toLocaleDateString(lang === 'en' ? 'en-US' : 'id-ID', { month: 'short', day: '2-digit' })}</span>
+                    <span style={{ fontSize: '0.7rem', opacity: 0.9, marginTop: '2px', color: 'var(--accent-brand-light)' }}>
+                      {new Date(tItem.date).toLocaleTimeString(lang === 'en' ? 'en-US' : 'id-ID', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                    </span>
                   </div>
                   <div className={`badge-icon ${tItem.type}`}>
                     {tItem.type === 'income' ? <TrendingUp size={20} /> : <TrendingDown size={20} />}

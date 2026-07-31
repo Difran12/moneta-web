@@ -15,8 +15,12 @@ export default function App() {
   const { transactions, addTransaction, deleteTransaction, accounts, incomeCategories, allocations, lang, setLang, t } = useStore();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showAddForm, setShowAddForm] = useState(false);
-  const todayStr = new Date().toISOString().split('T')[0];
-  const [formData, setFormData] = useState({ type: 'expense', amount: '', category: '', account: accounts[0] || '', note: '', date: todayStr });
+  const getNowDateTimeString = () => {
+    const d = new Date();
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().slice(0, 16);
+  };
+  const [formData, setFormData] = useState({ type: 'expense', amount: '', category: '', account: accounts[0] || '', note: '', date: getNowDateTimeString() });
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
 
   useEffect(() => {
@@ -50,7 +54,7 @@ export default function App() {
       ...formData,
       amount: rawAmount
     });
-    setFormData({ type: 'expense', amount: '', category: '', account: accounts[0] || '', note: '', date: todayStr });
+    setFormData({ type: 'expense', amount: '', category: '', account: accounts[0] || '', note: '', date: getNowDateTimeString() });
     setShowAddForm(false);
   };
 
@@ -142,7 +146,7 @@ export default function App() {
               </div>
               <div className="input-group">
                 <label>{t('dateLabel')}</label>
-                <input type="date" className="input-field" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} required />
+                <input type="datetime-local" className="input-field" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} required />
               </div>
               <div className="input-group" style={{ gridColumn: '1 / -1' }}>
                 <label>{t('note')}</label>
