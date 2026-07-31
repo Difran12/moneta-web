@@ -276,6 +276,35 @@ export default function Dashboard() {
   const saldo = totalIncome - totalRealisasi;
   const totalPercent = totalAlokasi > 0 ? totalRealisasi / totalAlokasi : 0;
 
+  // Compute cash flow breakdown per account & wallet
+  const accountBalances = useMemo(() => {
+    const map = {};
+    accounts.forEach(acc => {
+      map[acc] = { income: 0, expense: 0, net: 0 };
+    });
+
+    transactions.forEach(tItem => {
+      const acc = tItem.account;
+      if (!acc) return;
+      if (!map[acc]) {
+        map[acc] = { income: 0, expense: 0, net: 0 };
+      }
+      if (tItem.type === 'income') {
+        map[acc].income += tItem.amount;
+      } else if (tItem.type === 'expense') {
+        map[acc].expense += tItem.amount;
+      }
+      map[acc].net = map[acc].income - map[acc].expense;
+    });
+
+    return Object.entries(map).map(([name, data]) => ({
+      name,
+      ...data
+    }));
+  }, [accounts, transactions]);
+
+  const totalAssets = accountBalances.reduce((sum, item) => sum + item.net, 0);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       
@@ -329,10 +358,14 @@ export default function Dashboard() {
 
       {/* Summary Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '1rem' }}>
-        {/* HERO CARD */}
+        {/* HERO CARD - Total Assets */}
         <div className="glass-card hero-card" style={{ padding: '1.25rem 1rem', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '0.25rem', justifyContent: 'center' }}>
-          <div style={{ fontWeight: 600, fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('totalIncome')}</div>
-          <div style={{ fontSize: '1.4rem', fontWeight: 700, fontFamily: 'Outfit, sans-serif' }} className="balance-amount">{formatCurrency(totalIncome)}</div>
+          <div style={{ fontWeight: 600, fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('totalAssetsLabel')}</div>
+          <div style={{ fontSize: '1.4rem', fontWeight: 700, fontFamily: 'Outfit, sans-serif' }} className="balance-amount">{formatCurrency(totalAssets)}</div>
+        </div>
+        <div className="glass-card" style={{ padding: '1.25rem 1rem', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+          <div style={{ fontWeight: 600, color: 'var(--text-secondary)', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('totalIncome')}</div>
+          <div style={{ fontSize: '1.3rem', fontWeight: 700, fontFamily: 'Outfit, sans-serif' }} className="text-income">{formatCurrency(totalIncome)}</div>
         </div>
         <div className="glass-card" style={{ padding: '1.25rem 1rem', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
           <div style={{ fontWeight: 600, color: 'var(--text-secondary)', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('totalRealisasi')}</div>
@@ -346,9 +379,35 @@ export default function Dashboard() {
           <div style={{ fontWeight: 600, color: 'var(--text-secondary)', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('saldoSisa')}</div>
           <div style={{ fontSize: '1.3rem', fontWeight: 700, fontFamily: 'Outfit, sans-serif' }} className={saldo >= 0 ? 'text-income' : 'text-expense'}>{formatCurrency(saldo)}</div>
         </div>
-        <div className="glass-card" style={{ padding: '1.25rem 1rem', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-          <div style={{ fontWeight: 600, color: 'var(--text-secondary)', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('percentage')}</div>
-          <div style={{ fontSize: '1.3rem', fontWeight: 700, fontFamily: 'Outfit, sans-serif' }} className={totalPercent > 1 ? 'text-expense' : 'text-primary'}>{formatPercent(totalPercent)}</div>
+      </div>
+
+      {/* Cash Flow by Account & Wallet Card */}
+      <div className="glass-card animate-fade-in" style={{ padding: '1.25rem 1.5rem' }}>
+        <div className="flex-between" style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
+          <div>
+            <h3 style={{ fontSize: '1.15rem', color: 'var(--text-primary)', fontWeight: 700 }}>{t('cashFlowByAccountTitle')}</h3>
+            <p className="text-secondary" style={{ fontSize: '0.8rem' }}>Rincian arus kas pemasukan, pengeluaran & net balance per akun/dompet</p>
+          </div>
+          <span style={{ fontSize: '0.78rem', fontWeight: 700, background: 'rgba(99, 102, 241, 0.15)', color: 'var(--accent-brand)', padding: '0.35rem 0.85rem', borderRadius: '20px', border: '1px solid rgba(99, 102, 241, 0.3)' }}>
+            {accountBalances.length} Akun / Dompet
+          </span>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+          {accountBalances.map(item => (
+            <div key={item.name} style={{ background: 'var(--bg-input)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '0.85rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.65rem', transition: 'all 0.2s' }}>
+              <div className="flex-between">
+                <AccountLogo name={item.name} size={16} />
+                <span style={{ fontSize: '0.9rem', fontWeight: 700, fontFamily: 'Outfit, sans-serif', color: item.net >= 0 ? 'var(--accent-income)' : 'var(--accent-expense)' }}>
+                  {item.net >= 0 ? '+' : ''}{formatCurrency(item.net)}
+                </span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: 'var(--text-secondary)', borderTop: '1px dashed var(--border-color)', paddingTop: '0.5rem' }}>
+                <span>In: <strong className="text-income">+{formatCurrency(item.income)}</strong></span>
+                <span>Out: <strong className="text-expense">-{formatCurrency(item.expense)}</strong></span>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 

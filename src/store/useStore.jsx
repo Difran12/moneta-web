@@ -1,13 +1,15 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { translations } from '../utils/translations';
 
-// Default mock data if empty
+// Default mock data with User's Asset Portfolio
 const defaultTransactions = [
-  { id: 1, type: 'income', amount: 5000000, category: 'Salary', date: new Date().toISOString(), note: 'Monthly Salary' },
-  { id: 2, type: 'expense', amount: 150000, category: 'Food', date: new Date().toISOString(), note: 'Lunch' },
-  { id: 3, type: 'expense', amount: 300000, category: 'Transport', date: new Date(Date.now() - 86400000).toISOString(), note: 'Gas' },
+  { id: 101, type: 'income', amount: 25998000, category: 'Investasi', account: 'Stockbit', date: new Date().toISOString(), note: 'Portfolio Stockbit' },
+  { id: 102, type: 'income', amount: 1000000, category: 'Investasi', account: 'Ajaib', date: new Date().toISOString(), note: 'Portfolio Ajaib Sekuritas' },
+  { id: 103, type: 'income', amount: 8000000, category: 'Gaji Bulanan', account: 'Married', date: new Date().toISOString(), note: 'Tabungan Nikah (Married)' },
+  { id: 1, type: 'income', amount: 5000000, category: 'Gaji Bulanan', account: 'Livin', date: new Date().toISOString(), note: 'Salary Livin Mandiri' },
+  { id: 2, type: 'expense', amount: 150000, category: 'Living', account: 'Livin', date: new Date().toISOString(), note: 'Makan & Belanja' },
 ];
-const defaultAccounts = ['Tunai', 'BCA', 'Mandiri', 'BRI', 'BNI', 'Gopay', 'OVO', 'DANA', 'ShopeePay'];
+const defaultAccounts = ['Stockbit', 'Ajaib', 'Married', 'Livin', 'Tunai', 'BCA', 'Mandiri', 'Gopay', 'OVO'];
 const defaultIncomeCategories = ['Gaji Bulanan', 'Trading', 'Bonus', 'Investasi', 'Lainnya'];
 const defaultAllocations = [
   { id: '1', name: 'Saving', percent: 50, color: '#3b82f6' },
@@ -23,9 +25,9 @@ const defaultAllocations = [
 ];
 
 const defaultSavingsGoals = [
-  { id: '1', name: 'Tabungan Darurat', target: 20000000, current: 8500000, icon: 'Shield', color: '#10b981' },
-  { id: '2', name: 'Investasi Saham & Reksadana', target: 50000000, current: 22000000, icon: 'TrendingUp', color: '#6366f1' },
-  { id: '3', name: 'Tabungan Liburan', target: 10000000, current: 4000000, icon: 'Plane', color: '#06b6d4' },
+  { id: '1', name: 'Stockbit (Investasi Saham)', target: 30000000, current: 25998000, icon: 'TrendingUp', color: '#6366f1' },
+  { id: '2', name: 'Ajaib Sekuritas', target: 5000000, current: 1000000, icon: 'Shield', color: '#10b981' },
+  { id: '3', name: 'Married (Tabungan Nikah)', target: 50000000, current: 8000000, icon: 'Heart', color: '#ec4899' },
 ];
 
 const defaultDebts = [
