@@ -86,9 +86,9 @@ body {
 }
 
 #root {
-  max-width: 1400px;
+  max-width: 1040px;
   margin: 0 auto;
-  padding: 1.25rem 2rem;
+  padding: 1.5rem 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
