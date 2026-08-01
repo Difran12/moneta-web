@@ -75,8 +75,8 @@ export function StoreProvider({ children }) {
   });
 
   const [allocations, setAllocations] = useState(() => {
-    localStorage.setItem('money_tracker_allocations', JSON.stringify(defaultAllocations));
-    return defaultAllocations;
+    const saved = localStorage.getItem('money_tracker_allocations');
+    return saved ? JSON.parse(saved) : defaultAllocations;
   });
 
   const [savingsGoals, setSavingsGoals] = useState(() => {
