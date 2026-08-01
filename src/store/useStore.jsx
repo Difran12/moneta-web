@@ -1,5 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { translations } from '../utils/translations';
+import { auth, db } from '../lib/firebase';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 const categoryMigrationMap = {
   'Living': 'Kebutuhan Rumah & Hidup',
@@ -100,7 +103,9 @@ export function StoreProvider({ children }) {
 
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [user, setUser] = useState(null);
 
   const [userProfile, setUserProfile] = useState(() => {
     const saved = localStorage.getItem('moneta_user_profile');
@@ -144,6 +149,7 @@ export function StoreProvider({ children }) {
   const hideConfirm = () => setConfirmModal(null);
 
   useEffect(() => {
+    if (!user) return;
     localStorage.setItem('money_tracker_data', JSON.stringify(transactions));
     localStorage.setItem('money_tracker_accounts', JSON.stringify(accounts));
     localStorage.setItem('money_tracker_income_cat', JSON.stringify(incomeCategories));
@@ -154,7 +160,75 @@ export function StoreProvider({ children }) {
     localStorage.setItem('moneta_user_profile', JSON.stringify(userProfile));
     localStorage.setItem('moneta_notifications', JSON.stringify(notifications));
     localStorage.setItem('moneta_initial_balances', JSON.stringify(initialBalances));
-  }, [transactions, accounts, incomeCategories, allocations, savingsGoals, debts, lang, userProfile, notifications, initialBalances]);
+
+    // Optimistic Cloud Sync: Save the entire state document to Firestore
+    const syncToCloud = async () => {
+      try {
+        await setDoc(doc(db, 'users', user.uid), {
+          transactions,
+          accounts,
+          incomeCategories,
+          allocations,
+          savingsGoals,
+          debts,
+          userProfile,
+          notifications,
+          initialBalances,
+          updatedAt: new Date().toISOString()
+        });
+      } catch (err) {
+        console.error("Cloud sync failed:", err);
+      }
+    };
+    
+    // Simple debounce to avoid spamming Firestore on rapid local state changes
+    const timeoutId = setTimeout(() => {
+      syncToCloud();
+    }, 1500);
+
+    return () => clearTimeout(timeoutId);
+  }, [transactions, accounts, incomeCategories, allocations, savingsGoals, debts, lang, userProfile, notifications, initialBalances, user]);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        setIsLoggedIn(true);
+        // Load data from Firestore if available
+        try {
+          const docRef = doc(db, 'users', currentUser.uid);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            if (data.transactions) setTransactions(data.transactions);
+            if (data.accounts) setAccounts(data.accounts);
+            if (data.incomeCategories) setIncomeCategories(data.incomeCategories);
+            if (data.allocations) setAllocations(data.allocations);
+            if (data.savingsGoals) setSavingsGoals(data.savingsGoals);
+            if (data.debts) setDebts(data.debts);
+            if (data.userProfile) setUserProfile(data.userProfile);
+            if (data.notifications) setNotifications(data.notifications);
+            if (data.initialBalances) setInitialBalances(data.initialBalances);
+          }
+        } catch (err) {
+          console.error("Failed to load cloud data:", err);
+        }
+      } else {
+        setIsLoggedIn(false);
+      }
+      setAuthLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const logout = async () => {
+    try {
+      await signOut(auth);
+      showToast(lang === 'en' ? 'Logged out successfully' : 'Berhasil keluar', 'success');
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const t = (key) => {
     return translations[lang]?.[key] || translations['id']?.[key] || key;
@@ -301,6 +375,9 @@ export function StoreProvider({ children }) {
       setSelectedYear,
       isLoggedIn,
       setIsLoggedIn,
+      authLoading,
+      user,
+      logout,
       lang,
       setLang,
       t,

@@ -3,7 +3,7 @@ import { useStore } from '../store/useStore.jsx';
 import { User, Shield, Lock, LogOut, Key, CheckCircle, AlertCircle, X, Mail, Phone } from 'lucide-react';
 
 export default function ProfileModal({ isOpen, onClose }) {
-  const { userProfile, updateUserProfile, isLoggedIn, setIsLoggedIn, t } = useStore();
+  const { userProfile, updateUserProfile, isLoggedIn, logout, t } = useStore();
 
   const [activeTab, setActiveTab] = useState('profile'); // 'profile' | 'security' | 'session'
 
@@ -52,7 +52,7 @@ export default function ProfileModal({ isOpen, onClose }) {
   };
 
   const handleLogout = () => {
-    setIsLoggedIn(false);
+    logout();
     onClose();
   };
 

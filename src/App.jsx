@@ -8,7 +8,8 @@ import ProfileModal from './components/ProfileModal';
 import LoginModal from './components/LoginModal';
 import SearchableAccountSelect from './components/SearchableAccountSelect';
 import ToastAndConfirm from './components/ToastAndConfirm';
-import { Wallet, TrendingUp, TrendingDown, Plus, Trash2, Sun, Moon, Globe, X, AlertCircle, LayoutDashboard, Landmark, FileText, Settings as SettingsIcon, Bell, ChevronDown, Calendar, Layers } from 'lucide-react';
+import AuthScreen from './components/AuthScreen';
+import { Wallet, TrendingUp, TrendingDown, Plus, Trash2, Sun, Moon, Globe, X, AlertCircle, LayoutDashboard, Landmark, FileText, Settings as SettingsIcon, Bell, ChevronDown, Calendar, Layers, LogOut } from 'lucide-react';
 import './index.css';
 
 const formatCurrency = (amount) => {
@@ -18,7 +19,7 @@ const formatCurrency = (amount) => {
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 export default function App() {
-  const { transactions, addTransaction, deleteTransaction, accounts, incomeCategories, allocations, userProfile, updateUserProfile, notifications, markAllNotificationsRead, selectedMonth, setSelectedMonth, selectedYear, setSelectedYear, isLoggedIn, lang, setLang, t, showToast, showConfirm } = useStore();
+  const { transactions, addTransaction, deleteTransaction, accounts, incomeCategories, allocations, userProfile, updateUserProfile, notifications, markAllNotificationsRead, selectedMonth, setSelectedMonth, selectedYear, setSelectedYear, isLoggedIn, authLoading, logout, lang, setLang, t, showToast, showConfirm } = useStore();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showAddForm, setShowAddForm] = useState(false);
 
@@ -120,6 +121,26 @@ export default function App() {
   };
 
   const toggleLang = () => setLang(lang === 'id' ? 'en' : 'id');
+
+  if (authLoading) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-body)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ width: '40px', height: '40px', borderRadius: '50%', border: '4px solid var(--bg-input)', borderTopColor: 'var(--accent-primary)', animation: 'spin 1s linear infinite' }} />
+          <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>Loading Moneta...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isLoggedIn) {
+    return (
+      <>
+        <AuthScreen />
+        <ToastAndConfirm />
+      </>
+    );
+  }
 
   return (
     <div className="app-container" onClick={() => {
