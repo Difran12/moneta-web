@@ -41,7 +41,7 @@ export default function AuthScreen() {
       <div className="glass-card" style={{ padding: '2.5rem', width: '100%', maxWidth: '400px', display: 'flex', flexDirection: 'column', gap: '1.5rem', border: '1px solid var(--border-color)', borderRadius: '16px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}>
         
         <div style={{ textAlign: 'center' }}>
-          <h1 style={{ fontSize: '1.8rem', fontWeight: 800, background: 'linear-gradient(135deg, var(--accent-income), var(--accent-primary))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: '0.5rem' }}>
+          <h1 style={{ fontSize: '1.8rem', fontWeight: 800, background: 'linear-gradient(135deg, var(--accent-income), var(--accent-brand))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: '0.5rem' }}>
             Moneta
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
@@ -90,7 +90,7 @@ export default function AuthScreen() {
               width: '100%', 
               padding: '0.85rem', 
               marginTop: '0.5rem',
-              background: 'var(--accent-primary)', 
+              background: 'var(--accent-brand)', 
               color: 'white', 
               border: 'none', 
               borderRadius: '10px', 
@@ -111,7 +111,7 @@ export default function AuthScreen() {
             <button 
               type="button" 
               onClick={() => setIsLogin(!isLogin)}
-              style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', fontWeight: 700, cursor: 'pointer', padding: 0 }}
+              style={{ background: 'none', border: 'none', color: 'var(--accent-brand)', fontWeight: 700, cursor: 'pointer', padding: 0 }}
             >
               {isLogin ? (lang === 'en' ? 'Register' : 'Daftar') : (lang === 'en' ? 'Sign In' : 'Masuk')}
             </button>

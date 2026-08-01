@@ -126,7 +126,7 @@ export default function App() {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-body)' }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '50%', border: '4px solid var(--bg-input)', borderTopColor: 'var(--accent-primary)', animation: 'spin 1s linear infinite' }} />
+          <div style={{ width: '40px', height: '40px', borderRadius: '50%', border: '4px solid var(--bg-input)', borderTopColor: 'var(--accent-brand)', animation: 'spin 1s linear infinite' }} />
           <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>Loading Moneta...</span>
         </div>
       </div>
