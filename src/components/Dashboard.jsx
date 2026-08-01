@@ -859,21 +859,45 @@ export default function Dashboard() {
                 const colors = ['#10B981', '#F97316', '#A855F7', '#3B82F6', '#EAB308', '#EC4899'];
                 const color = colors[idx % colors.length];
                 return (
-                  <div key={row.name}>
-                    <div className="flex-between" style={{ fontSize: '0.82rem', marginBottom: '0.3rem' }}>
-                      <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: color, flexShrink: 0 }} />
-                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                          <span>{row.name}</span>
-                          {row.desc && <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', fontWeight: 500 }}>{row.desc}</span>}
+                  <div key={row.name} style={{ background: 'var(--bg-input)', padding: '0.85rem 1rem', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                    <div className="flex-between" style={{ alignItems: 'flex-start', gap: '0.5rem' }}>
+                      
+                      {/* Left: Indicator, Title & Desc */}
+                      <div style={{ display: 'flex', gap: '0.5rem', flex: 1, minWidth: 0 }}>
+                        <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: color, flexShrink: 0, marginTop: '0.25rem' }} />
+                        <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                          <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{row.name}</span>
+                          {row.desc && <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{row.desc}</span>}
                         </div>
-                      </span>
-                      <span style={{ color: 'var(--text-secondary)', fontSize: '0.78rem' }}>
-                        {formatCurrency(row.realisasi)} / {formatCurrency(row.alokasi)}
-                      </span>
+                      </div>
+                      
+                      {/* Right: Amounts */}
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', flexShrink: 0 }}>
+                        <span style={{ fontSize: '0.85rem', fontWeight: 800, color: row.overbudget ? 'var(--accent-expense)' : 'var(--text-primary)', fontFamily: 'Outfit, sans-serif' }}>
+                          {formatCurrency(row.realisasi)}
+                        </span>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
+                          / {formatCurrency(row.alokasi)}
+                        </span>
+                      </div>
                     </div>
-                    <div style={{ width: '100%', height: '7px', background: 'var(--bg-input)', borderRadius: '4px', overflow: 'hidden' }}>
-                      <div style={{ width: `${Math.min(row.progress * 100, 100)}%`, height: '100%', background: color, borderRadius: '4px' }} />
+                    
+                    {/* Progress Bar & Status Text */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                      <div style={{ width: '100%', height: '6px', background: 'var(--bg-panel)', borderRadius: '4px', overflow: 'hidden' }}>
+                        <div style={{ width: `${Math.min(row.progress * 100, 100)}%`, height: '100%', background: row.overbudget ? 'var(--accent-expense)' : color, borderRadius: '4px', transition: 'width 0.4s ease' }} />
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', fontSize: '0.65rem', fontWeight: 700 }}>
+                        {row.overbudget ? (
+                          <span style={{ color: 'var(--accent-expense)' }}>
+                            Over Budget: {formatCurrency(row.realisasi - row.alokasi)}
+                          </span>
+                        ) : (
+                          <span style={{ color: 'var(--text-secondary)' }}>
+                            {lang === 'en' ? 'Remaining: ' : 'Tersisa: '}{formatCurrency(row.alokasi - row.realisasi)}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
