@@ -23,7 +23,7 @@
 ## 📸 Application Showcase & Portfolio UI
 
 ### 📊 Dashboard & Cashflow Analytics
-![Moneta Dashboard Analytics](public/preview.png)
+![Moneta Dashboard Analytics](screenshots/dashboard.png)
 
 ### ⚙️ Budget Allocation & Account Settings
 ![Moneta Budget Allocation Settings](screenshots/settings.png)
