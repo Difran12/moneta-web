@@ -559,8 +559,8 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Top 3 Hero Metric Cards (Subtle Tinted Color Accent) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+      {/* Top 5 Hero Metric Cards (Subtle Tinted Color Accent) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '1rem' }}>
         {/* Card 1: Total Net Assets */}
         <div className="glass-card" style={{ padding: '1.15rem 1.25rem', background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(59, 130, 246, 0.03) 100%)', border: '1px solid rgba(59, 130, 246, 0.25)', display: 'flex', flexDirection: 'column', gap: '0.4rem', justifyContent: 'center' }}>
           <div className="flex-between" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
@@ -579,13 +579,31 @@ export default function Dashboard() {
           <div style={{ fontSize: '1.5rem', fontWeight: 800, fontFamily: 'Outfit, sans-serif', color: '#10b981' }}>{formatCurrency(totalIncome)}</div>
         </div>
 
-        {/* Card 3: Percentage Allocation */}
+        {/* Card 3: Total Allocation */}
+        <div className="glass-card" style={{ padding: '1.15rem 1.25rem', background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(245, 158, 11, 0.03) 100%)', border: '1px solid rgba(245, 158, 11, 0.25)', display: 'flex', flexDirection: 'column', gap: '0.4rem', justifyContent: 'center' }}>
+          <div className="flex-between" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
+            <span>{t('totalAlokasi')}</span>
+            <PieChartIcon size={18} style={{ color: '#f59e0b' }} />
+          </div>
+          <div style={{ fontSize: '1.5rem', fontWeight: 800, fontFamily: 'Outfit, sans-serif', color: '#f59e0b' }}>{formatCurrency(totalAlokasi)}</div>
+        </div>
+
+        {/* Card 4: Percentage Allocation */}
         <div className="glass-card" style={{ padding: '1.15rem 1.25rem', background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.12) 0%, rgba(168, 85, 247, 0.03) 100%)', border: '1px solid rgba(168, 85, 247, 0.25)', display: 'flex', flexDirection: 'column', gap: '0.4rem', justifyContent: 'center' }}>
           <div className="flex-between" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
             <span>{t('percentage')} {t('allocation')}</span>
             <PieChartIcon size={18} style={{ color: '#a855f7' }} />
           </div>
           <div style={{ fontSize: '1.5rem', fontWeight: 800, fontFamily: 'Outfit, sans-serif', color: '#a855f7' }}>{formatPercent(totalPercent)}</div>
+        </div>
+
+        {/* Card 5: Remaining Balance */}
+        <div className="glass-card" style={{ padding: '1.15rem 1.25rem', background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.12) 0%, rgba(6, 182, 212, 0.03) 100%)', border: '1px solid rgba(6, 182, 212, 0.25)', display: 'flex', flexDirection: 'column', gap: '0.4rem', justifyContent: 'center' }}>
+          <div className="flex-between" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
+            <span>{t('saldoSisa')}</span>
+            <DollarSign size={18} style={{ color: '#06b6d4' }} />
+          </div>
+          <div style={{ fontSize: '1.5rem', fontWeight: 800, fontFamily: 'Outfit, sans-serif', color: '#06b6d4' }}>{formatCurrency(saldo)}</div>
         </div>
       </div>
 
