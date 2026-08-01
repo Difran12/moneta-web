@@ -1,7 +1,41 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
 :root {
-  /* LIGHT THEME (Clean Modern Style) */
+  /* Sleek Premium Dark Theme Defaults (Reference Dashboard UI) */
+  --bg-main: #0B0E14;
+  --bg-panel: #131722;
+  --bg-input: #1C2230;
+  --bg-sticky: #0D111A;
+  --bg-table-header: #171E2E;
+  --bg-table-hover: #1E2738;
+  --bg-tab: #171E2E;
+  
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-focus: #3B82F6;
+  
+  --text-primary: #F8FAFC;
+  --text-secondary: #8E9BAE;
+  
+  --accent-income: #10B981;
+  --accent-income-bg: rgba(16, 185, 129, 0.15);
+  --accent-expense: #EF4444;
+  --accent-expense-bg: rgba(239, 68, 68, 0.15);
+  
+  --accent-brand: #3B82F6;
+  --accent-brand-light: #60A5FA;
+  --accent-cyan: #06B6D4;
+  
+  --shadow-card: 0px 10px 30px -5px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.05);
+  --shadow-card-hover: 0px 15px 45px -5px rgba(0, 0, 0, 0.7), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  --shadow-glow: 0px 10px 30px rgba(59, 130, 246, 0.45);
+  
+  --radius-xl: 18px;
+  --radius-lg: 14px;
+  --radius-md: 10px;
+  --radius-sm: 8px;
+}
+
+[data-theme='light'] {
   --bg-main: #F4F7FB;
   --bg-panel: rgba(255, 255, 255, 0.9);
   --bg-input: #F8FAFC;
@@ -11,7 +45,7 @@
   --bg-tab: #E2E8F0;
   
   --border-color: #E2E8F0;
-  --border-focus: #6366F1;
+  --border-focus: #3B82F6;
   
   --text-primary: #0F172A;
   --text-secondary: #64748B;
@@ -21,52 +55,12 @@
   --accent-expense: #EF4444;
   --accent-expense-bg: #FEE2E2;
   
-  --accent-brand: #6366F1;
-  --accent-brand-light: #818CF8;
-  --accent-cyan: #06B6D4;
+  --accent-brand: #3B82F6;
+  --accent-brand-light: #60A5FA;
   
-  /* Brand Gradients for Hero Cards */
-  --bg-gradient-brand: linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #2563EB 100%);
-  
-  /* Super Soft Shadows & Glows */
   --shadow-card: 0px 10px 30px -5px rgba(0, 0, 0, 0.05);
   --shadow-card-hover: 0px 15px 40px -5px rgba(0, 0, 0, 0.08);
-  --shadow-glow: 0px 10px 25px rgba(99, 102, 241, 0.35);
-  
-  --radius-xl: 20px;
-  --radius-lg: 14px;
-  --radius-md: 10px;
-  --radius-sm: 8px;
-}
-
-[data-theme='dark'] {
-  /* ULTRA PREMIUM MIDNIGHT GLASSMORPHISM (Matching Showcase) */
-  --bg-main: #0B0F19;
-  --bg-panel: rgba(19, 27, 46, 0.75);
-  --bg-input: #172036;
-  --bg-sticky: #131B2E;
-  --bg-table-header: #172036;
-  --bg-table-hover: #1E293B;
-  --bg-tab: #172036;
-
-  --border-color: rgba(255, 255, 255, 0.08);
-  --border-focus: #6366F1;
-
-  --text-primary: #F8FAFC;
-  --text-secondary: #94A3B8;
-
-  --accent-income: #10B981;
-  --accent-income-bg: rgba(16, 185, 129, 0.15);
-  --accent-expense: #EF4444;
-  --accent-expense-bg: rgba(239, 68, 68, 0.15);
-
-  --accent-brand: #6366F1;
-  --accent-brand-light: #818CF8;
-
-  --bg-gradient-brand: linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #2563EB 100%);
-  --shadow-card: 0px 10px 30px -5px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.05);
-  --shadow-card-hover: 0px 15px 45px -5px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.1);
-  --shadow-glow: 0px 10px 30px rgba(99, 102, 241, 0.45);
+  --shadow-glow: 0px 10px 25px rgba(59, 130, 246, 0.35);
 }
 
 * {
@@ -99,14 +93,14 @@ body {
   width: 100%;
 }
 
-.app-sidebar {
-  width: 270px;
-  background: var(--bg-panel);
+.app-sidebar-compact {
+  width: 72px;
+  background: var(--bg-sticky);
   border-right: 1px solid var(--border-color);
-  backdrop-filter: blur(16px);
-  padding: 1.5rem 1.25rem;
+  padding: 1.25rem 0.5rem;
   display: flex;
   flex-direction: column;
+  align-items: center;
   justify-content: space-between;
   position: sticky;
   top: 0;
@@ -117,46 +111,42 @@ body {
 .app-main-content {
   flex: 1;
   padding: 1.5rem 2rem;
-  max-width: 1100px;
+  max-width: 1350px;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
 }
 
-.sidebar-nav {
+.sidebar-icon-nav {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  margin-top: 1.5rem;
+  gap: 0.85rem;
+  align-items: center;
 }
 
-.nav-item {
+.sidebar-icon-item {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  border-radius: var(--radius-lg);
+  justify-content: center;
   color: var(--text-secondary);
-  font-weight: 600;
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.92rem;
   background: transparent;
-  border: 1px solid transparent;
+  border: none;
   cursor: pointer;
-  transition: all 0.2s ease;
-  width: 100%;
-  text-align: left;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.nav-item:hover {
+.sidebar-icon-item:hover {
   color: var(--text-primary);
-  background: var(--bg-input);
+  background: rgba(255, 255, 255, 0.06);
 }
 
-.nav-item.active {
-  color: var(--accent-brand);
-  background: rgba(99, 102, 241, 0.12);
-  border: 1px solid rgba(99, 102, 241, 0.25);
+.sidebar-icon-item.active {
+  color: #FFFFFF;
+  background: #2563EB;
+  box-shadow: 0 0 20px rgba(37, 99, 235, 0.65);
 }
 
 /* Typography Overrides */

@@ -4,139 +4,309 @@ import YearlyReport from './components/YearlyReport';
 import Dashboard from './components/Dashboard';
 import Settings from './components/Settings';
 import SavingsAndDebts from './components/SavingsAndDebts';
-import Investing from './components/Investing';
+import ProfileModal from './components/ProfileModal';
+import LoginModal from './components/LoginModal';
 import SearchableAccountSelect from './components/SearchableAccountSelect';
-import { Wallet, TrendingUp, TrendingDown, Plus, Trash2, Sun, Moon, Globe, X, AlertCircle, LayoutDashboard, PiggyBank, FileText, Settings as SettingsIcon } from 'lucide-react';
+import { Wallet, TrendingUp, TrendingDown, Plus, Trash2, Sun, Moon, Globe, X, AlertCircle, LayoutDashboard, Landmark, FileText, Settings as SettingsIcon, Bell, ChevronDown, Calendar, Layers } from 'lucide-react';
 import './index.css';
 
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(amount);
 };
 
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
 export default function App() {
-  const { transactions, addTransaction, deleteTransaction, accounts, incomeCategories, allocations, lang, setLang, t } = useStore();
+  const { transactions, addTransaction, deleteTransaction, accounts, incomeCategories, allocations, userProfile, updateUserProfile, notifications, markAllNotificationsRead, selectedMonth, setSelectedMonth, selectedYear, setSelectedYear, isLoggedIn, lang, setLang, t } = useStore();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showAddForm, setShowAddForm] = useState(false);
+
+  // Popover & Modal States for Header Controls
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+
+  const [editProfileName, setEditProfileName] = useState(userProfile?.name || 'Alex Thompson');
+  const [editProfileEmail, setEditProfileEmail] = useState(userProfile?.email || 'alex.thompson@moneta.app');
+  const [formError, setFormError] = useState('');
+
+  const unreadCount = notifications.filter(n => !n.read).length;
+
   const getNowDateTimeString = () => {
-    const d = new Date();
-    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-    return d.toISOString().slice(0, 16);
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    return now.toISOString().slice(0, 16);
   };
-  const [formData, setFormData] = useState({ type: 'expense', amount: '', category: '', account: accounts[0] || '', note: '', date: getNowDateTimeString() });
-  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
+
+  const [formData, setFormData] = useState({
+    type: 'expense',
+    amount: '',
+    category: '',
+    account: '',
+    date: getNowDateTimeString(),
+    note: ''
+  });
+
+  const theme = document.documentElement.getAttribute('data-theme') || 'dark';
+
+  const toggleTheme = () => {
+    const nextTheme = theme === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', nextTheme);
+    localStorage.setItem('moneta_theme', nextTheme);
+  };
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme);
-  }, [theme]);
+    const savedTheme = localStorage.getItem('moneta_theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  }, []);
 
-  const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark');
-
-  // Prepare data for Recharts (group by date)
-  const chartData = [...transactions].reverse().map(t => ({
-    name: new Date(t.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' }),
-    amount: t.type === 'income' ? t.amount : -t.amount,
-  }));
-
-  const handleAmountChange = (e) => {
-    const rawValue = e.target.value.replace(/[^0-9]/g, '');
-    if (!rawValue) {
-      setFormData({...formData, amount: ''});
-      return;
-    }
-    const formattedValue = Number(rawValue).toLocaleString('en-US');
-    setFormData({...formData, amount: formattedValue});
+  const handleProfileSave = (e) => {
+    e.preventDefault();
+    updateUserProfile({ name: editProfileName, email: editProfileEmail });
+    setShowProfileModal(false);
   };
 
-  const [formError, setFormError] = useState('');
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setFormError('');
-    const rawAmount = Number((formData.amount || '').replace(/,/g, ''));
-    
-    if (!rawAmount || rawAmount <= 0) {
-      setFormError(t('invalidAmountError'));
+    if (!formData.amount || !formData.category || !formData.account) {
+      alert('Mohon isi semua field!');
       return;
     }
-    if (!formData.category) {
-      setFormError(t('invalidCategoryError'));
-      return;
-    }
-    if (!formData.account) {
-      setFormError(t('invalidAccountError'));
-      return;
-    }
-    if (!formData.date) {
-      setFormError(t('invalidDateError'));
+    const rawAmount = Number(formData.amount.toString().replace(/[^0-9]/g, ''));
+    if (isNaN(rawAmount) || rawAmount <= 0) {
+      alert('Jumlah transaksi harus berupa angka lebih besar dari 0');
       return;
     }
 
     addTransaction({
-      ...formData,
-      amount: rawAmount
+      type: formData.type,
+      amount: rawAmount,
+      category: formData.category,
+      account: formData.account,
+      date: formData.date ? new Date(formData.date).toISOString() : new Date().toISOString(),
+      note: formData.note
     });
-    setFormData({ type: 'expense', amount: '', category: '', account: accounts[0] || '', note: '', date: getNowDateTimeString() });
-    setFormError('');
+
+    setFormData({
+      type: 'expense',
+      amount: '',
+      category: '',
+      account: '',
+      date: getNowDateTimeString(),
+      note: ''
+    });
     setShowAddForm(false);
   };
 
   const toggleLang = () => setLang(lang === 'id' ? 'en' : 'id');
 
   return (
-    <div className="app-container">
-      {/* Left Sidebar */}
-      <aside className="app-sidebar">
-        <div>
-          {/* Brand Header */}
-          <div style={{ marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid var(--border-color)' }}>
-            <h1 style={{ fontSize: '1.45rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Wallet className="text-brand" size={24} /> {t('appTitle')}
-            </h1>
-            <p className="text-secondary" style={{ fontSize: '0.78rem', marginTop: '0.2rem' }}>{t('appSubtitle')}</p>
+    <div className="app-container" onClick={() => {
+      // Auto close popovers on backdrop click
+    }}>
+      {/* Sleek Compact Icon Sidebar (Reference UI Layout) */}
+      <aside className="app-sidebar-compact">
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.75rem' }}>
+          {/* Logo Emblem */}
+          <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'linear-gradient(135deg, #2563EB 0%, #3B82F6 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF', fontWeight: 800, fontSize: '1.25rem', boxShadow: '0 0 15px rgba(37, 99, 235, 0.5)' }}>
+            M
           </div>
 
-          {/* Navigation Items */}
-          <nav className="sidebar-nav">
-            <button className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')}>
-              <LayoutDashboard size={18} /> {t('dashboard')}
+          {/* Navigation Icon Buttons */}
+          <nav className="sidebar-icon-nav">
+            <button className={`sidebar-icon-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')} title={t('dashboard')}>
+              <LayoutDashboard size={20} />
             </button>
-            <button className={`nav-item ${activeTab === 'investing' ? 'active' : ''}`} onClick={() => setActiveTab('investing')}>
-              <TrendingUp size={18} /> {t('investing')}
+            <button className={`sidebar-icon-item ${activeTab === 'alokasi' ? 'active' : ''}`} onClick={() => setActiveTab('alokasi')} title={t('savingsAndDebts')}>
+              <Landmark size={20} />
             </button>
-            <button className={`nav-item ${activeTab === 'alokasi' ? 'active' : ''}`} onClick={() => setActiveTab('alokasi')}>
-              <PiggyBank size={18} /> {t('savingsAndDebts')}
+            <button className={`sidebar-icon-item ${activeTab === 'rekap' ? 'active' : ''}`} onClick={() => setActiveTab('rekap')} title={t('yearlyReport')}>
+              <FileText size={20} />
             </button>
-            <button className={`nav-item ${activeTab === 'rekap' ? 'active' : ''}`} onClick={() => setActiveTab('rekap')}>
-              <FileText size={18} /> {t('yearlyReport')}
-            </button>
-            <button className={`nav-item ${activeTab === 'pengaturan' ? 'active' : ''}`} onClick={() => setActiveTab('pengaturan')}>
-              <SettingsIcon size={18} /> {t('settings')}
+            <button className={`sidebar-icon-item ${activeTab === 'pengaturan' ? 'active' : ''}`} onClick={() => setActiveTab('pengaturan')} title={t('settings')}>
+              <SettingsIcon size={20} />
             </button>
           </nav>
         </div>
 
-        {/* Sidebar Bottom Actions */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1.5rem' }}>
-          {activeTab === 'dashboard' && (
-            <button className="btn btn-primary animate-fade-in" style={{ width: '100%' }} onClick={() => setShowAddForm(!showAddForm)}>
-              <Plus size={18} /> {showAddForm ? t('cancel') : t('addTransaction')}
-            </button>
-          )}
-
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button className="btn" style={{ flex: 1, background: 'var(--bg-input)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', padding: '0.6rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', fontFamily: 'Outfit, sans-serif', fontWeight: 600, fontSize: '0.82rem' }} onClick={toggleLang} title="Ganti Bahasa / Switch Language">
-              <Globe size={16} /> {lang.toUpperCase()}
-            </button>
-            <button className="btn" style={{ background: 'var(--bg-input)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', padding: '0.6rem' }} onClick={toggleTheme} title="Ganti Tema">
-              {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-            </button>
-          </div>
+        {/* Sidebar Bottom Controls */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', alignItems: 'center' }}>
+          <button className="sidebar-icon-item" onClick={toggleLang} title="Ganti Bahasa">
+            <span style={{ fontSize: '0.75rem', fontWeight: 700 }}>{lang.toUpperCase()}</span>
+          </button>
+          <button className="sidebar-icon-item" onClick={toggleTheme} title="Ganti Tema">
+            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
         </div>
       </aside>
 
       {/* Main Content Area */}
       <main className="app-main-content">
+        
+        {/* Top Header Bar */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '0.5rem', position: 'relative' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <h1 style={{ fontSize: '1.85rem', fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
+              Moneta
+            </h1>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', position: 'relative' }}>
+            {activeTab === 'dashboard' && (
+              <button className="btn btn-primary" style={{ padding: '0.45rem 1rem', fontSize: '0.85rem' }} onClick={() => setShowAddForm(!showAddForm)}>
+                <Plus size={16} /> {showAddForm ? t('cancel') : t('addTransaction')}
+              </button>
+            )}
+
+            {/* Interactive Date Dropdown Pill */}
+            <div
+              onClick={() => {
+                setShowDatePicker(!showDatePicker);
+                setShowNotifications(false);
+                setShowProfileModal(false);
+              }}
+              style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-color)', borderRadius: '10px', padding: '0.4rem 0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)', cursor: 'pointer', userSelect: 'none' }}
+            >
+              <Calendar size={14} />
+              <span>{MONTHS[selectedMonth]} {selectedYear}</span>
+              <ChevronDown size={14} />
+            </div>
+
+            {/* Date Selector Popover */}
+            {showDatePicker && (
+              <div style={{ position: 'absolute', top: '100%', right: '150px', marginTop: '0.5rem', width: '240px', background: 'var(--bg-panel)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '0.85rem', boxShadow: '0 10px 30px rgba(0,0,0,0.5)', zIndex: 200 }} className="animate-fade-in">
+                <div className="flex-between" style={{ marginBottom: '0.5rem' }}>
+                  <span style={{ fontSize: '0.82rem', fontWeight: 700 }}>Pilih Periode Waktu</span>
+                  <select value={selectedYear} onChange={e => setSelectedYear(Number(e.target.value))} style={{ background: 'var(--bg-input)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', padding: '0.2rem 0.4rem', borderRadius: '6px', fontSize: '0.75rem', outline: 'none' }}>
+                    {[2024, 2025, 2026, 2027].map(y => <option key={y} value={y}>{y}</option>)}
+                  </select>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.4rem' }}>
+                  {MONTHS.map((m, idx) => (
+                    <button
+                      key={m}
+                      onClick={() => {
+                        setSelectedMonth(idx);
+                        setShowDatePicker(false);
+                      }}
+                      style={{
+                        background: selectedMonth === idx ? '#3B82F6' : 'var(--bg-input)',
+                        color: selectedMonth === idx ? '#FFF' : 'var(--text-primary)',
+                        border: 'none',
+                        borderRadius: '6px',
+                        padding: '0.35rem',
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {m}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Interactive Notification Bell */}
+            <div
+              onClick={() => {
+                setShowNotifications(!showNotifications);
+                setShowDatePicker(false);
+                setShowProfileModal(false);
+              }}
+              style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-color)', borderRadius: '10px', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', position: 'relative', cursor: 'pointer', userSelect: 'none' }}
+              title="Notifikasi"
+            >
+              <Bell size={16} />
+              {unreadCount > 0 && (
+                <span style={{ position: 'absolute', top: '7px', right: '7px', width: '7px', height: '7px', background: '#EF4444', borderRadius: '50%' }} />
+              )}
+            </div>
+
+            {/* Notifications Popover Drawer */}
+            {showNotifications && (
+              <div style={{ position: 'absolute', top: '100%', right: '80px', marginTop: '0.5rem', width: '300px', background: 'var(--bg-panel)', border: '1px solid var(--border-color)', borderRadius: '14px', padding: '1rem', boxShadow: '0 10px 30px rgba(0,0,0,0.5)', zIndex: 200 }} className="animate-fade-in">
+                <div className="flex-between" style={{ marginBottom: '0.75rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
+                  <span style={{ fontSize: '0.88rem', fontWeight: 700 }}>Notifikasi ({unreadCount})</span>
+                  <button
+                    onClick={() => markAllNotificationsRead()}
+                    style={{ background: 'none', border: 'none', color: '#3B82F6', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    Tandai Dibaca
+                  </button>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', maxHeight: '240px', overflowY: 'auto' }}>
+                  {notifications.map(n => (
+                    <div key={n.id} style={{ background: n.read ? 'transparent' : 'rgba(59, 130, 246, 0.1)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '0.55rem 0.75rem' }}>
+                      <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-primary)' }}>{n.title}</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.15rem' }}>{n.message}</div>
+                      <div style={{ fontSize: '0.68rem', color: 'var(--accent-brand-light)', marginTop: '0.3rem' }}>{n.time}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Interactive User Profile Pill */}
+            <div
+              onClick={() => {
+                setShowProfileModal(!showProfileModal);
+                setShowDatePicker(false);
+                setShowNotifications(false);
+              }}
+              style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-color)', borderRadius: '20px', padding: '0.25rem 0.75rem 0.25rem 0.35rem', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', userSelect: 'none' }}
+            >
+              <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#3B82F6', color: '#FFF', fontWeight: 700, fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {userProfile.initials || 'AT'}
+              </div>
+              <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary)' }}>{userProfile.name}</span>
+              <ChevronDown size={14} style={{ color: 'var(--text-secondary)' }} />
+            </div>
+
+            {/* User Profile Edit Modal / Popover */}
+            {showProfileModal && (
+              <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: '0.5rem', width: '280px', background: 'var(--bg-panel)', border: '1px solid var(--border-color)', borderRadius: '14px', padding: '1rem', boxShadow: '0 10px 30px rgba(0,0,0,0.5)', zIndex: 200 }} className="animate-fade-in">
+                <div style={{ textAlign: 'center', paddingBottom: '0.75rem', borderBottom: '1px solid var(--border-color)', marginBottom: '0.75rem' }}>
+                  <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#3B82F6', color: '#FFF', fontWeight: 800, fontSize: '1.1rem', margin: '0 auto 0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 15px rgba(59, 130, 246, 0.5)' }}>
+                    {userProfile.initials || 'AT'}
+                  </div>
+                  <div style={{ fontWeight: 700, fontSize: '0.92rem' }}>{userProfile.name}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{userProfile.email}</div>
+                </div>
+
+                <form onSubmit={handleProfileSave} style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)' }}>UBAH PROFIL</div>
+                  <input
+                    type="text"
+                    className="input-field"
+                    style={{ padding: '0.45rem 0.75rem', fontSize: '0.8rem' }}
+                    value={editProfileName}
+                    onChange={e => setEditProfileName(e.target.value)}
+                    placeholder="Nama Pengguna"
+                    required
+                  />
+                  <input
+                    type="email"
+                    className="input-field"
+                    style={{ padding: '0.45rem 0.75rem', fontSize: '0.8rem' }}
+                    value={editProfileEmail}
+                    onChange={e => setEditProfileEmail(e.target.value)}
+                    placeholder="Email"
+                    required
+                  />
+                  <button type="submit" className="btn btn-primary" style={{ padding: '0.45rem', fontSize: '0.8rem', marginTop: '0.25rem' }}>
+                    Simpan Perubahan
+                  </button>
+                </form>
+              </div>
+            )}
+          </div>
+        </div>
         {showAddForm && (
           <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowAddForm(false)}>
             <div className="modal-content">
@@ -209,8 +379,6 @@ export default function App() {
 
         {activeTab === 'dashboard' ? (
           <Dashboard />
-        ) : activeTab === 'investing' ? (
-          <Investing />
         ) : activeTab === 'alokasi' ? (
           <SavingsAndDebts />
         ) : activeTab === 'rekap' ? (
@@ -218,6 +386,12 @@ export default function App() {
         ) : (
           <Settings />
         )}
+
+        {/* Profile & Security Management Modal */}
+        <ProfileModal isOpen={showProfileModal} onClose={() => setShowProfileModal(false)} />
+
+        {/* Login / Auth Screen Simulation */}
+        <LoginModal />
       </main>
     </div>
   );

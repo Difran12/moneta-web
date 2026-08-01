@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useStore } from '../store/useStore.jsx';
-import { PiggyBank, CreditCard, Plus, Trash2, Shield, TrendingUp, Plane, CheckCircle2, DollarSign, Calendar } from 'lucide-react';
+import AccountLogo from './AccountLogo';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
+import { Landmark, CreditCard, Plus, Trash2, Shield, TrendingUp, Plane, CheckCircle2, DollarSign, Calendar, Coins } from 'lucide-react';
 
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount || 0);
@@ -84,7 +86,7 @@ export default function SavingsAndDebts() {
           <div className="flex-between" style={{ marginBottom: '0.75rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <div style={{ background: '#10b981', color: 'white', padding: '0.6rem', borderRadius: '12px' }}>
-                <PiggyBank size={24} />
+                <Landmark size={24} />
               </div>
               <div>
                 <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>{t('savingsTitle')}</h3>
@@ -136,16 +138,68 @@ export default function SavingsAndDebts() {
         </div>
       </div>
 
-      {/* Savings & Investments List */}
+      {/* Savings & Investments List + Portfolio Distribution Chart */}
       <div className="glass-card">
-        <h3 style={{ marginBottom: '1rem', fontSize: '1.15rem' }}>{t('savingsTitle')}</h3>
+        <div className="flex-between" style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
+          <div>
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 700 }}>{t('savingsTitle')}</h3>
+            <p className="text-secondary" style={{ fontSize: '0.8rem' }}>Portofolio tabungan, saham, dan instrumen investasi Anda</p>
+          </div>
+          <span style={{ fontSize: '0.78rem', fontWeight: 700, background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', padding: '0.35rem 0.85rem', borderRadius: '20px', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+            {savingsGoals.length} Target Portfolio
+          </span>
+        </div>
+
+        {/* Portfolio Distribution Pie Chart */}
+        {savingsGoals.length > 0 && (
+          <div style={{ background: 'var(--bg-input)', border: '1px solid var(--border-color)', borderRadius: '14px', padding: '1rem 1.25rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+            <div style={{ flex: '1 1 200px' }}>
+              <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.25rem' }}>Sebaran Portofolio Investasi</h4>
+              <p className="text-secondary" style={{ fontSize: '0.78rem' }}>Rasio proporsi alokasi saldo per instrumen tabungan</p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem 1rem', marginTop: '0.75rem' }}>
+                {savingsGoals.map((g, idx) => (
+                  <div key={g.id} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.78rem', fontWeight: 600 }}>
+                    <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: g.color || ['#6366F1', '#10B981', '#EC4899', '#06B6D4'][idx % 4] }} />
+                    <AccountLogo name={g.name} size={12} />
+                    <span>{g.name}:</span>
+                    <strong style={{ color: 'var(--accent-income)' }}>{formatCurrency(g.current)}</strong>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div style={{ width: '160px', height: '140px' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={savingsGoals.map(g => ({ name: g.name, value: Number(g.current || 0) }))}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={38}
+                    outerRadius={58}
+                    paddingAngle={4}
+                    dataKey="value"
+                  >
+                    {savingsGoals.map((g, idx) => (
+                      <Cell key={g.id} fill={g.color || ['#6366F1', '#10B981', '#EC4899', '#06B6D4'][idx % 4]} />
+                    ))}
+                  </Pie>
+                  <RechartsTooltip formatter={(val) => formatCurrency(val)} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
+
         <div className="grid-cols-3">
           {savingsGoals.map(goal => {
             const prog = goal.target > 0 ? (goal.current / goal.target) * 100 : 0;
             return (
               <div key={goal.id} className="glass-card" style={{ padding: '1.2rem', background: 'var(--bg-input)', border: '1px solid var(--border-color)' }}>
                 <div className="flex-between" style={{ marginBottom: '0.75rem' }}>
-                  <h4 style={{ fontWeight: 700, fontSize: '1rem' }}>{goal.name}</h4>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <AccountLogo name={goal.name} size={16} />
+                    <h4 style={{ fontWeight: 700, fontSize: '1rem' }}>{goal.name}</h4>
+                  </div>
                   <button onClick={() => deleteSavingsGoal(goal.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent-expense)' }}>
                     <Trash2 size={16} />
                   </button>

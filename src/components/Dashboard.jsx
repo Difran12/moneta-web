@@ -1,9 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useStore } from '../store/useStore.jsx';
 import AccountLogo from './AccountLogo';
 import SearchableAccountSelect from './SearchableAccountSelect';
 import { PieChart, Pie, Cell, BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
-import { TrendingUp, TrendingDown, Trash2, Pencil, X, AlertCircle } from 'lucide-react';
+import { TrendingUp, TrendingDown, Trash2, Pencil, X, AlertCircle, Wallet, DollarSign, ChevronDown, PieChart as PieChartIcon } from 'lucide-react';
 
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount || 0);
@@ -56,13 +56,17 @@ const MONTHS_ID = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli
 const MONTHS_EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 export default function Dashboard() {
-  const { transactions, allocations, deleteTransaction, updateTransaction, accounts, incomeCategories, lang, t } = useStore();
+  const { transactions, allocations, deleteTransaction, updateTransaction, accounts, incomeCategories, lang, t, selectedMonth, setSelectedMonth, selectedYear, setSelectedYear } = useStore();
   const MONTHS = lang === 'en' ? MONTHS_EN : MONTHS_ID;
   
   const currentDate = new Date();
-  const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
-  const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth());
+  const [selectedDay, setSelectedDay] = useState(currentDate.getDate());
   const [timeframe, setTimeframe] = useState('monthly'); // 'daily' | 'weekly' | 'monthly' | 'yearly'
+
+  const selectedDateObj = useMemo(() => new Date(selectedYear, selectedMonth, selectedDay), [selectedYear, selectedMonth, selectedDay]);
+  const dayName = useMemo(() => {
+    return selectedDateObj.toLocaleDateString(lang === 'en' ? 'en-US' : 'id-ID', { weekday: 'long' });
+  }, [selectedDateObj, lang]);
 
   // Edit Transaction State
   const [editingTx, setEditingTx] = useState(null);
@@ -124,14 +128,14 @@ export default function Dashboard() {
   }, [transactions, currentDate]);
 
   // Helper to filter transaction based on active timeframe
-  const isMatchTimeframe = (dateStr) => {
+  const isMatchTimeframe = useCallback((dateStr) => {
     const d = new Date(dateStr);
-    const now = new Date();
     
     if (timeframe === 'daily') {
-      return d.getFullYear() === selectedYear && d.getMonth() === selectedMonth && d.getDate() === now.getDate();
+      return d.getFullYear() === selectedYear && d.getMonth() === selectedMonth && d.getDate() === selectedDay;
     } else if (timeframe === 'weekly') {
-      const diffTime = Math.abs(now - d);
+      const targetDate = new Date(selectedYear, selectedMonth, selectedDay);
+      const diffTime = Math.abs(targetDate - d);
       const diffDays = diffTime / (1000 * 60 * 60 * 24);
       return diffDays <= 7;
     } else if (timeframe === 'monthly') {
@@ -140,7 +144,7 @@ export default function Dashboard() {
       return d.getFullYear() === selectedYear;
     }
     return true;
-  };
+  }, [timeframe, selectedYear, selectedMonth, selectedDay]);
 
   // Calculate summary data for selected timeframe
   const { totalIncome, totalRealisasi, categoryData } = useMemo(() => {
@@ -173,41 +177,41 @@ export default function Dashboard() {
     });
 
     return { totalIncome: income, totalRealisasi: realisasi, categoryData: data };
-  }, [transactions, selectedYear, selectedMonth, timeframe, allocations]);
+  }, [transactions, allocations, isMatchTimeframe]);
 
   // Generate chart data dynamically based on timeframe
   const lineChartData = useMemo(() => {
     const data = [];
     
     if (timeframe === 'daily') {
-      const days = 7;
-      for (let i = days - 1; i >= 0; i--) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        const dayLabel = d.toLocaleDateString(lang === 'en' ? 'en-US' : 'id-ID', { weekday: 'short', day: 'numeric' });
-        
-        let inc = 0;
-        let exp = 0;
-        transactions.forEach(t => {
-          const tDate = new Date(t.date);
-          if (tDate.toDateString() === d.toDateString()) {
-            if (t.type === 'income') inc += t.amount;
-            else exp += t.amount;
-          }
-        });
-        
+      // 24-hour slots breakdown for selected day (04:00, 08:00, 12:00, 16:00, 20:00, 24:00)
+      const hoursSlots = ['04:00', '08:00', '12:00', '16:00', '20:00', '24:00'];
+      const slotIncome = [0, 0, 0, 0, 0, 0];
+      const slotExpense = [0, 0, 0, 0, 0, 0];
+
+      transactions.forEach(t => {
+        const tDate = new Date(t.date);
+        if (tDate.getFullYear() === selectedYear && tDate.getMonth() === selectedMonth && tDate.getDate() === selectedDay) {
+          const hour = tDate.getHours();
+          const slotIndex = Math.min(Math.floor(hour / 4), 5);
+          if (t.type === 'income') slotIncome[slotIndex] += t.amount;
+          else slotExpense[slotIndex] += t.amount;
+        }
+      });
+
+      hoursSlots.forEach((slot, idx) => {
         data.push({
-          day: dayLabel,
-          income: inc,
-          expenseInverted: -exp
+          day: slot,
+          income: slotIncome[idx],
+          expenseInverted: -slotExpense[idx]
         });
-      }
+      });
     } else if (timeframe === 'weekly') {
       const days = 7;
       for (let i = days - 1; i >= 0; i--) {
-        const d = new Date();
+        const d = new Date(selectedYear, selectedMonth, selectedDay);
         d.setDate(d.getDate() - i);
-        const dayLabel = d.toLocaleDateString(lang === 'en' ? 'en-US' : 'id-ID', { weekday: 'short' });
+        const dayLabel = d.toLocaleDateString(lang === 'en' ? 'en-US' : 'id-ID', { weekday: 'short', day: 'numeric' });
         
         let inc = 0;
         let exp = 0;
@@ -270,13 +274,13 @@ export default function Dashboard() {
       }
     }
     return data;
-  }, [transactions, selectedYear, selectedMonth, timeframe, lang, t, MONTHS]);
+  }, [transactions, selectedYear, selectedMonth, selectedDay, timeframe, lang, t, MONTHS]);
 
   const totalAlokasi = totalIncome;
   const saldo = totalIncome - totalRealisasi;
   const totalPercent = totalAlokasi > 0 ? totalRealisasi / totalAlokasi : 0;
 
-  // Compute cash flow breakdown per account & wallet
+  // Compute cash flow breakdown per account & wallet for the selected timeframe
   const accountBalances = useMemo(() => {
     const map = {};
     accounts.forEach(acc => {
@@ -284,6 +288,7 @@ export default function Dashboard() {
     });
 
     transactions.forEach(tItem => {
+      if (!isMatchTimeframe(tItem.date)) return;
       const acc = tItem.account;
       if (!acc) return;
       if (!map[acc]) {
@@ -301,9 +306,33 @@ export default function Dashboard() {
       name,
       ...data
     }));
-  }, [accounts, transactions]);
+  }, [accounts, transactions, isMatchTimeframe]);
 
   const totalAssets = accountBalances.reduce((sum, item) => sum + item.net, 0);
+
+  const dynamicPeriodText = useMemo(() => {
+    if (timeframe === 'daily') {
+      return lang === 'en' ? `${dayName}, ${MONTHS[selectedMonth]} ${selectedDay}` : `${dayName}, ${selectedDay} ${MONTHS[selectedMonth]}`;
+    } else if (timeframe === 'weekly') {
+      const weekOfMonth = Math.ceil(selectedDay / 7);
+      return lang === 'en' ? `Week ${weekOfMonth} of ${MONTHS[selectedMonth]} ${selectedYear}` : `Minggu ke-${weekOfMonth} ${MONTHS[selectedMonth]} ${selectedYear}`;
+    } else if (timeframe === 'yearly') {
+      return selectedYear.toString();
+    }
+    return `${MONTHS[selectedMonth]} ${selectedYear}`;
+  }, [timeframe, lang, dayName, selectedDay, selectedMonth, selectedYear, MONTHS]);
+
+  const dynamicPeriodTextFull = useMemo(() => {
+    if (timeframe === 'daily') {
+      return lang === 'en' ? `${dayName}, ${MONTHS[selectedMonth]} ${selectedDay}, ${selectedYear}` : `${dayName}, ${selectedDay} ${MONTHS[selectedMonth]} ${selectedYear}`;
+    } else if (timeframe === 'weekly') {
+      const weekOfMonth = Math.ceil(selectedDay / 7);
+      return lang === 'en' ? `Week ${weekOfMonth} of ${MONTHS[selectedMonth]} ${selectedYear}` : `Minggu ke-${weekOfMonth} ${MONTHS[selectedMonth]} ${selectedYear}`;
+    } else if (timeframe === 'yearly') {
+      return lang === 'en' ? `Year ${selectedYear}` : `Tahun ${selectedYear}`;
+    }
+    return `${MONTHS[selectedMonth]} ${selectedYear}`;
+  }, [timeframe, lang, dayName, selectedDay, selectedMonth, selectedYear, MONTHS]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -345,7 +374,7 @@ export default function Dashboard() {
               {availableYears.map(y => <option key={y} value={y}>{y}</option>)}
             </select>
           </div>
-          {(timeframe === 'monthly' || timeframe === 'daily') && (
+          {(timeframe === 'monthly' || timeframe === 'daily' || timeframe === 'weekly') && (
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
               <span style={{ fontWeight: 600 }}>{t('month')}</span>
               <select value={selectedMonth} onChange={e => setSelectedMonth(Number(e.target.value))} style={{ background: 'var(--bg-input)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', padding: '0.35rem 0.75rem', borderRadius: 'var(--radius-sm)', outline: 'none', fontFamily: 'inherit' }}>
@@ -353,283 +382,257 @@ export default function Dashboard() {
               </select>
             </div>
           )}
+          {(timeframe === 'weekly' || timeframe === 'daily') && (
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <span style={{ fontWeight: 600 }}>{lang === 'en' ? 'Week' : 'Minggu'}</span>
+              <select value={Math.ceil(selectedDay / 7)} onChange={e => setSelectedDay((Number(e.target.value) - 1) * 7 + 1)} style={{ background: 'var(--bg-input)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', padding: '0.35rem 0.75rem', borderRadius: 'var(--radius-sm)', outline: 'none', fontFamily: 'inherit' }}>
+                {Array.from({ length: Math.ceil(new Date(selectedYear, selectedMonth + 1, 0).getDate() / 7) }, (_, i) => i + 1).map(w => (
+                  <option key={w} value={w}>{w}</option>
+                ))}
+              </select>
+            </div>
+          )}
+          {timeframe === 'daily' && (
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <span style={{ fontWeight: 600 }}>{t('day')}</span>
+              <select value={selectedDay} onChange={e => setSelectedDay(Number(e.target.value))} style={{ background: 'var(--bg-input)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', padding: '0.35rem 0.75rem', borderRadius: 'var(--radius-sm)', outline: 'none', fontFamily: 'inherit' }}>
+                {Array.from({ length: new Date(selectedYear, selectedMonth + 1, 0).getDate() }, (_, i) => i + 1).map(day => (
+                  <option key={day} value={day}>{day}</option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '1rem' }}>
-        {/* HERO CARD - Total Assets */}
-        <div className="glass-card hero-card" style={{ padding: '1.25rem 1rem', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '0.25rem', justifyContent: 'center' }}>
-          <div style={{ fontWeight: 600, fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('totalAssetsLabel')}</div>
-          <div style={{ fontSize: '1.4rem', fontWeight: 700, fontFamily: 'Outfit, sans-serif' }} className="balance-amount">{formatCurrency(totalAssets)}</div>
-        </div>
-        <div className="glass-card" style={{ padding: '1.25rem 1rem', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-          <div style={{ fontWeight: 600, color: 'var(--text-secondary)', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('totalIncome')}</div>
-          <div style={{ fontSize: '1.3rem', fontWeight: 700, fontFamily: 'Outfit, sans-serif' }} className="text-income">{formatCurrency(totalIncome)}</div>
-        </div>
-        <div className="glass-card" style={{ padding: '1.25rem 1rem', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-          <div style={{ fontWeight: 600, color: 'var(--text-secondary)', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('totalRealisasi')}</div>
-          <div style={{ fontSize: '1.3rem', fontWeight: 700, fontFamily: 'Outfit, sans-serif' }} className="text-expense">{formatCurrency(totalRealisasi)}</div>
-        </div>
-        <div className="glass-card" style={{ padding: '1.25rem 1rem', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-          <div style={{ fontWeight: 600, color: 'var(--text-secondary)', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('totalAlokasi')}</div>
-          <div style={{ fontSize: '1.3rem', fontWeight: 700, fontFamily: 'Outfit, sans-serif' }} className="text-brand">{formatCurrency(totalAlokasi)}</div>
-        </div>
-        <div className="glass-card" style={{ padding: '1.25rem 1rem', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-          <div style={{ fontWeight: 600, color: 'var(--text-secondary)', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('saldoSisa')}</div>
-          <div style={{ fontSize: '1.3rem', fontWeight: 700, fontFamily: 'Outfit, sans-serif' }} className={saldo >= 0 ? 'text-income' : 'text-expense'}>{formatCurrency(saldo)}</div>
-        </div>
-      </div>
-
-      {/* Cash Flow by Account & Wallet Card */}
-      <div className="glass-card animate-fade-in" style={{ padding: '1.25rem 1.5rem' }}>
-        <div className="flex-between" style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
-          <div>
-            <h3 style={{ fontSize: '1.15rem', color: 'var(--text-primary)', fontWeight: 700 }}>{t('cashFlowByAccountTitle')}</h3>
-            <p className="text-secondary" style={{ fontSize: '0.8rem' }}>Rincian arus kas pemasukan, pengeluaran & net balance per akun/dompet</p>
+      {/* Top 4 Hero Metric Cards (Matching Reference Image UI) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
+        <div className="glass-card" style={{ padding: '1.15rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '0.4rem', justifyContent: 'center' }}>
+          <div className="flex-between" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
+            <span>{t('totalAssetsLabel')}</span>
+            <Wallet size={16} />
           </div>
-          <span style={{ fontSize: '0.78rem', fontWeight: 700, background: 'rgba(99, 102, 241, 0.15)', color: 'var(--accent-brand)', padding: '0.35rem 0.85rem', borderRadius: '20px', border: '1px solid rgba(99, 102, 241, 0.3)' }}>
-            {accountBalances.length} Akun / Dompet
-          </span>
+          <div style={{ fontSize: '1.5rem', fontWeight: 700, fontFamily: 'Outfit, sans-serif' }}>{formatCurrency(totalAssets)}</div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
-          {accountBalances.map(item => (
-            <div key={item.name} style={{ background: 'var(--bg-input)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '0.85rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.65rem', transition: 'all 0.2s' }}>
-              <div className="flex-between">
-                <AccountLogo name={item.name} size={16} />
-                <span style={{ fontSize: '0.9rem', fontWeight: 700, fontFamily: 'Outfit, sans-serif', color: item.net >= 0 ? 'var(--accent-income)' : 'var(--accent-expense)' }}>
-                  {item.net >= 0 ? '+' : ''}{formatCurrency(item.net)}
-                </span>
+        <div className="glass-card" style={{ padding: '1.15rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '0.4rem', justifyContent: 'center' }}>
+          <div className="flex-between" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
+            <span>{t('totalIncome')}</span>
+            <TrendingUp size={16} className="text-income" />
+          </div>
+          <div style={{ fontSize: '1.5rem', fontWeight: 700, fontFamily: 'Outfit, sans-serif' }}>{formatCurrency(totalIncome)}</div>
+        </div>
+
+        <div className="glass-card" style={{ padding: '1.15rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '0.4rem', justifyContent: 'center' }}>
+          <div className="flex-between" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
+            <span>{t('percentage')} {t('allocation')}</span>
+            <PieChartIcon size={16} className="text-brand" />
+          </div>
+          <div style={{ fontSize: '1.5rem', fontWeight: 700, fontFamily: 'Outfit, sans-serif' }}>{formatPercent(totalPercent)}</div>
+        </div>
+
+        <div className="glass-card" style={{ padding: '1.15rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '0.4rem', justifyContent: 'center' }}>
+          <div className="flex-between" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
+            <span>{t('saldoSisa')}</span>
+            <DollarSign size={16} className="text-income" />
+          </div>
+          <div style={{ fontSize: '1.5rem', fontWeight: 700, fontFamily: 'Outfit, sans-serif' }}>{formatCurrency(saldo)}</div>
+        </div>
+      </div>
+
+      {/* Main 2-Column Dashboard Layout (Reference UI Image Match) */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 390px', gap: '1.25rem' }}>
+        
+        {/* LEFT COLUMN: Cashflow Trend & Account Cashflow */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          
+          {/* Dual Wave Trend Chart */}
+          <div className="glass-card" style={{ height: '390px', display: 'flex', flexDirection: 'column', padding: '1.25rem 1.5rem' }}>
+            <div className="flex-between" style={{ marginBottom: '0.75rem' }}>
+              <div>
+                <h3 style={{ color: 'var(--text-primary)', fontSize: '1.1rem', fontWeight: 700 }}>
+                  {t('trendTitle')} ({t(timeframe)})
+                </h3>
+                <p className="text-secondary" style={{ fontSize: '0.78rem' }}>
+                  {dynamicPeriodTextFull}
+                </p>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: 'var(--text-secondary)', borderTop: '1px dashed var(--border-color)', paddingTop: '0.5rem' }}>
-                <span>In: <strong className="text-income">+{formatCurrency(item.income)}</strong></span>
-                <span>Out: <strong className="text-expense">-{formatCurrency(item.expense)}</strong></span>
+              <div style={{ background: 'var(--bg-input)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '0.35rem 0.75rem', fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer' }}>
+                <span className="text-income">{t('income')}</span>
+                <ChevronDown size={14} />
               </div>
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Premium Moneta Dual Cashflow Trend Chart (As in Showcase Image) */}
-      <div className="glass-card" style={{ height: '370px', display: 'flex', flexDirection: 'column', padding: '1.25rem 1.5rem' }}>
-        <div className="flex-between" style={{ marginBottom: '0.75rem' }}>
-          <div>
-            <h3 style={{ color: 'var(--text-primary)', fontSize: '1.15rem', fontWeight: 700 }}>{t('dailyCashflow')}</h3>
-            <p className="text-secondary" style={{ fontSize: '0.8rem' }}>{t('income')} & {t('expense')} Trend ({t(timeframe)})</p>
-          </div>
-        </div>
-        
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={lineChartData} margin={{ top: 20, right: 20, left: 10, bottom: 0 }}>
-            <defs>
-              <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#10b981" stopOpacity={0.5} />
-                <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
-              </linearGradient>
-              <linearGradient id="expenseGradient" x1="0" y1="1" x2="0" y2="0">
-                <stop offset="5%" stopColor="#ef4444" stopOpacity={0.5} />
-                <stop offset="95%" stopColor="#ef4444" stopOpacity={0.0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" opacity={0.25} vertical={false} />
-            <XAxis 
-              dataKey="day" 
-              stroke="var(--text-secondary)" 
-              tick={{ fill: 'var(--text-secondary)', fontSize: 12, fontWeight: 500 }} 
-              axisLine={{ stroke: 'var(--border-color)' }}
-              tickLine={false}
-            />
-            <YAxis 
-              stroke="var(--text-secondary)" 
-              tick={{ fill: 'var(--text-secondary)', fontSize: 11, fontWeight: 500 }} 
-              tickFormatter={formatMonetaYAxis} 
-              axisLine={false} 
-              tickLine={false}
-            />
-            <ReferenceLine y={0} stroke="var(--border-color)" strokeDasharray="3 3" />
-            <RechartsTooltip content={<CustomMonetaTooltip />} />
             
-            <Area 
-              type="monotone" 
-              dataKey="income" 
-              name={t('income')}
-              stroke="#10b981" 
-              strokeWidth={3} 
-              fillOpacity={1} 
-              fill="url(#incomeGradient)" 
-              dot={{ r: 4, fill: '#ffffff', stroke: '#10b981', strokeWidth: 2 }}
-              activeDot={{ r: 6, fill: '#ffffff', stroke: '#10b981', strokeWidth: 3 }} 
-            />
-            <Area 
-              type="monotone" 
-              dataKey="expenseInverted" 
-              name={t('expense')}
-              stroke="#ef4444" 
-              strokeWidth={3} 
-              fillOpacity={1} 
-              fill="url(#expenseGradient)" 
-              dot={{ r: 4, fill: '#ffffff', stroke: '#ef4444', strokeWidth: 2 }}
-              activeDot={{ r: 6, fill: '#ffffff', stroke: '#ef4444', strokeWidth: 3 }} 
-            />
-          </AreaChart>
-        </ResponsiveContainer>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={lineChartData} margin={{ top: 20, right: 20, left: 10, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.5} />
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
+                  </linearGradient>
+                  <linearGradient id="expenseGradient" x1="0" y1="1" x2="0" y2="0">
+                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.5} />
+                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0.0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" opacity={0.25} vertical={false} />
+                <XAxis 
+                  dataKey="day" 
+                  stroke="var(--text-secondary)" 
+                  tick={{ fill: 'var(--text-secondary)', fontSize: 11, fontWeight: 500 }} 
+                  axisLine={{ stroke: 'var(--border-color)' }}
+                  tickLine={false}
+                />
+                <YAxis 
+                  stroke="var(--text-secondary)" 
+                  tick={{ fill: 'var(--text-secondary)', fontSize: 10, fontWeight: 500 }} 
+                  tickFormatter={formatMonetaYAxis} 
+                  axisLine={false} 
+                  tickLine={false}
+                />
+                <ReferenceLine y={0} stroke="var(--border-color)" strokeDasharray="3 3" />
+                <RechartsTooltip content={<CustomMonetaTooltip />} />
+                
+                <Area 
+                  type="monotone" 
+                  dataKey="income" 
+                  name={t('income')}
+                  stroke="#10b981" 
+                  strokeWidth={3} 
+                  fillOpacity={1} 
+                  fill="url(#incomeGradient)" 
+                  dot={{ r: 4, fill: '#ffffff', stroke: '#10b981', strokeWidth: 2 }}
+                  activeDot={{ r: 6, fill: '#ffffff', stroke: '#10b981', strokeWidth: 3 }} 
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="expenseInverted" 
+                  name={t('expense')}
+                  stroke="#ef4444" 
+                  strokeWidth={3} 
+                  fillOpacity={1} 
+                  fill="url(#expenseGradient)" 
+                  dot={{ r: 4, fill: '#ffffff', stroke: '#ef4444', strokeWidth: 2 }}
+                  activeDot={{ r: 6, fill: '#ffffff', stroke: '#ef4444', strokeWidth: 3 }} 
+                />
+              </AreaChart>
+            </ResponsiveContainer>
 
-        {/* Custom Legend at Bottom Center */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', marginTop: '0.4rem', fontSize: '0.85rem', fontWeight: 600 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: '#10b981' }}>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 8px #10b981' }} />
-            {t('income')}
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', marginTop: '0.4rem', fontSize: '0.82rem', fontWeight: 600 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: '#10b981' }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 8px #10b981' }} />
+                {t('income')}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: '#ef4444' }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444', boxShadow: '0 0 8px #ef4444' }} />
+                {t('expense')}
+              </div>
+            </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: '#ef4444' }}>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444', boxShadow: '0 0 8px #ef4444' }} />
-            {t('expense')}
-          </div>
-        </div>
-      </div>
 
-      {/* Table Budget vs Actual */}
-      <div className="table-container">
-        <table className="glass-table" style={{ width: '100%', tableLayout: 'fixed' }}>
-          <thead>
-            <tr>
-              <th style={{ width: '20%' }}>{t('category')}</th>
-              <th style={{ width: '20%', textAlign: 'right' }}>{t('allocation')}</th>
-              <th style={{ width: '20%', textAlign: 'right' }}>{t('realization')}</th>
-              <th style={{ width: '25%' }}>{t('progress')}</th>
-              <th style={{ width: '15%', textAlign: 'right' }}>%</th>
-            </tr>
-          </thead>
-          <tbody>
-            {categoryData.map(row => {
-              const progPercent = Math.min(row.progress * 100, 100);
-              const barColor = row.overbudget ? '#ef4444' : '#f59e0b';
-              const isOver = row.overbudget;
+          {/* Cash Flow by Account Card */}
+          <div className="glass-card animate-fade-in" style={{ padding: '1.25rem 1.5rem' }}>
+            <div className="flex-between" style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
+              <div>
+                <h3 style={{ fontSize: '1.05rem', color: 'var(--text-primary)', fontWeight: 700 }}>{t('cashFlowByAccountTitle')}</h3>
+                <p className="text-secondary" style={{ fontSize: '0.78rem' }}>
+                  {lang === 'en' ? 'Account cash flow breakdown' : 'Arus kas per akun'} ({dynamicPeriodText})
+                </p>
+              </div>
+              <span style={{ fontSize: '0.75rem', fontWeight: 700, background: 'rgba(59, 130, 246, 0.15)', color: 'var(--accent-brand)', padding: '0.3rem 0.75rem', borderRadius: '20px' }}>
+                {accountBalances.length} {t('accountsCount')}
+              </span>
+            </div>
 
-              return (
-                <tr key={row.name}>
-                  <td>{row.name}</td>
-                  <td style={{ textAlign: 'right' }}>{formatCurrency(row.alokasi)}</td>
-                  <td style={{ textAlign: 'right', background: isOver ? '#ef4444' : 'transparent', color: isOver ? 'white' : 'inherit', fontWeight: isOver ? 700 : 400 }}>
-                    {row.realisasi === 0 ? 'Rp0' : formatCurrency(row.realisasi)}
-                  </td>
-                  <td>
-                    {row.realisasi > 0 && (
-                      <div style={{ width: '100%', background: 'rgba(255,255,255,0.1)', height: '24px', borderRadius: '4px', overflow: 'hidden' }}>
-                        <div style={{ width: `${progPercent}%`, background: barColor, height: '100%', transition: 'width 0.5s' }} />
-                      </div>
-                    )}
-                  </td>
-                  <td style={{ textAlign: 'right' }}>{formatPercent(row.progress)}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Charts */}
-      <div className="grid-cols-2" style={{ gap: '1rem' }}>
-        <div className="glass-card" style={{ height: '280px', display: 'flex', flexDirection: 'column' }}>
-          <h3 style={{ textAlign: 'center', marginBottom: '1rem', color: 'var(--text-secondary)' }}>{t('chartAllocation')}</h3>
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={categoryData}
-                dataKey="alokasi"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={100}
-                paddingAngle={2}
-              >
-                {categoryData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <RechartsTooltip formatter={(value) => formatCurrency(value)} />
-              <Legend layout="vertical" verticalAlign="middle" align="right" wrapperStyle={{ fontSize: '12px' }} />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-        
-        <div className="glass-card" style={{ height: '280px', display: 'flex', flexDirection: 'column' }}>
-          <h3 style={{ textAlign: 'center', marginBottom: '1rem', color: 'var(--text-secondary)' }}>{t('chartRealization')}</h3>
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={categoryData} margin={{ top: 5, right: 30, left: 20, bottom: 25 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
-              <XAxis dataKey="name" tick={{ fontSize: 10, fill: 'var(--text-secondary)' }} angle={-45} textAnchor="end" />
-              <YAxis tick={{ fontSize: 10, fill: 'var(--text-secondary)' }} tickFormatter={(value) => `Rp${value/1000}k`} />
-              <RechartsTooltip formatter={(value) => formatCurrency(value)} contentStyle={{ background: 'var(--bg-panel)', borderColor: 'var(--border-color)' }} />
-              <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
-              <Bar dataKey="alokasi" name={t('allocation')} fill="#93c5fd" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="realisasi" name={t('realization')} fill="#3b82f6" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* Filtered Transaction History */}
-      <section className="grid-cols-1" style={{ marginTop: '0.5rem' }}>
-        <div className="glass-card animate-fade-in" style={{ overflowY: 'auto', maxHeight: 400 }}>
-          <div className="flex-between" style={{ marginBottom: '1rem' }}>
-            <h3 style={{ fontSize: '1.1rem' }}>{t('transactionHistory')} ({t(timeframe)})</h3>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {transactions.filter(tItem => isMatchTimeframe(tItem.date)).length === 0 ? (
-              <p className="text-secondary text-center" style={{ padding: '2rem' }}>{t('noTransactions')}</p>
-            ) : transactions.filter(tItem => isMatchTimeframe(tItem.date)).map(tItem => (
-              <div key={tItem.id} className="flex-between" style={{ padding: '0.85rem 1rem', background: 'var(--bg-input)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
-                <div style={{ display: 'flex', gap: '0.85rem', alignItems: 'center' }}>
-                  <div style={{
-                    background: 'var(--bg-tab)',
-                    padding: '0.35rem 0.65rem',
-                    borderRadius: '8px',
-                    fontSize: '0.75rem',
-                    fontWeight: 700,
-                    color: 'var(--text-secondary)',
-                    textAlign: 'center',
-                    minWidth: '80px',
-                    fontFamily: 'Outfit, sans-serif',
-                    border: '1px solid var(--border-color)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    lineHeight: '1.25'
-                  }}>
-                    <span>{new Date(tItem.date).toLocaleDateString(lang === 'en' ? 'en-US' : 'id-ID', { month: 'short', day: '2-digit' })}</span>
-                    <span style={{ fontSize: '0.7rem', opacity: 0.9, marginTop: '2px', color: 'var(--accent-brand-light)' }}>
-                      {new Date(tItem.date).toLocaleTimeString(lang === 'en' ? 'en-US' : 'id-ID', { hour: '2-digit', minute: '2-digit', hour12: false })}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.85rem' }}>
+              {accountBalances.map(item => (
+                <div key={item.name} style={{ background: 'var(--bg-input)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '0.85rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <div className="flex-between">
+                    <AccountLogo name={item.name} size={16} />
+                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: item.net >= 0 ? 'var(--accent-income)' : 'var(--accent-expense)' }}>
+                      {item.net >= 0 ? '+' : ''}{formatCurrency(item.net)}
                     </span>
                   </div>
-                  <div className={`badge-icon ${tItem.type}`}>
-                    {tItem.type === 'income' ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
-                  </div>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.2rem' }}>
-                      <h4 className={tItem.type === 'income' ? 'text-income' : 'text-expense'} style={{ fontSize: '0.95rem', fontWeight: 600 }}>{tItem.category}</h4>
-                      {tItem.account && <AccountLogo name={tItem.account} size={12} />}
-                    </div>
-                    <p className="text-secondary" style={{ fontSize: '0.8rem' }}>{tItem.note || t('noNote')}</p>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-secondary)', borderTop: '1px dashed var(--border-color)', paddingTop: '0.4rem' }}>
+                    <span>In: <strong className="text-income">+{formatCurrency(item.income)}</strong></span>
+                    <span>Out: <strong className="text-expense">-{formatCurrency(item.expense)}</strong></span>
                   </div>
                 </div>
-                <div style={{ textAlign: 'right', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <span className={tItem.type === 'income' ? 'text-income' : 'text-expense'} style={{ fontWeight: 600, fontFamily: 'Outfit, sans-serif' }}>
-                    {tItem.type === 'income' ? '+' : '-'}{formatCurrency(tItem.amount)}
-                  </span>
-                  <button onClick={() => startEdit(tItem)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent-brand)' }} title={t('editTransaction')}>
-                    <Pencil size={16} />
-                  </button>
-                  <button onClick={() => deleteTransaction(tItem.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent-expense)' }} title={t('delete')}>
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
+
         </div>
-      </section>
+
+        {/* RIGHT SIDEBAR COLUMN: Budget Allocation & Recent Transactions */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          
+          {/* Card 1: Budget Allocation */}
+          <div className="glass-card" style={{ padding: '1.25rem' }}>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '1rem' }}>
+              {t('budgetAllocation')} ({dynamicPeriodText})
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+              {categoryData.map((row, idx) => {
+                const colors = ['#10B981', '#F97316', '#A855F7', '#3B82F6', '#EAB308', '#EC4899'];
+                const color = colors[idx % colors.length];
+                return (
+                  <div key={row.name}>
+                    <div className="flex-between" style={{ fontSize: '0.82rem', marginBottom: '0.3rem' }}>
+                      <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: color }} />
+                        {row.name}
+                      </span>
+                      <span style={{ color: 'var(--text-secondary)', fontSize: '0.78rem' }}>
+                        {formatCurrency(row.realisasi)} / {formatCurrency(row.alokasi)}
+                      </span>
+                    </div>
+                    <div style={{ width: '100%', height: '7px', background: 'var(--bg-input)', borderRadius: '4px', overflow: 'hidden' }}>
+                      <div style={{ width: `${Math.min(row.progress * 100, 100)}%`, height: '100%', background: color, borderRadius: '4px' }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Card 2: Recent Transactions */}
+          <div className="glass-card" style={{ padding: '1.25rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '1rem' }}>
+              {t('recentTransactions')} ({dynamicPeriodText})
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {transactions.filter(tItem => isMatchTimeframe(tItem.date)).length === 0 ? (
+                <p className="text-secondary text-center" style={{ padding: '1.5rem', fontSize: '0.82rem' }}>{t('noTransactions')}</p>
+              ) : transactions.filter(tItem => isMatchTimeframe(tItem.date)).slice(0, 5).map(tItem => (
+                <div key={tItem.id} className="flex-between" style={{ padding: '0.65rem 0.85rem', background: 'var(--bg-input)', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                    <AccountLogo name={tItem.account || tItem.category} size={16} />
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: '0.82rem' }}>{tItem.category}</div>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
+                        {new Date(tItem.date).toLocaleDateString('en-US', { month: 'short', day: '2-digit' })}
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'right', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span className={tItem.type === 'income' ? 'text-income' : 'text-expense'} style={{ fontWeight: 700, fontSize: '0.85rem', fontFamily: 'Outfit, sans-serif' }}>
+                      {tItem.type === 'income' ? '+' : '-'}{formatCurrency(tItem.amount)}
+                    </span>
+                    <button onClick={() => startEdit(tItem)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent-brand)', padding: 0 }}>
+                      <Pencil size={14} />
+                    </button>
+                    <button onClick={() => deleteTransaction(tItem.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent-expense)', padding: 0 }}>
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+        </div>
+      </div>
 
       {/* Edit Transaction Modal Pop-Up */}
       {editingTx && (

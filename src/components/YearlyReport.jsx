@@ -9,7 +9,7 @@ const MONTHS_ID = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep'
 const MONTHS_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 export default function YearlyReport() {
-  const { transactions, allocations, lang, t } = useStore();
+  const { transactions, allocations, lang, t, selectedYear } = useStore();
   const MONTHS = lang === 'en' ? MONTHS_EN : MONTHS_ID;
 
   // Initialize data structures for 12 months
@@ -22,7 +22,7 @@ export default function YearlyReport() {
   // Aggregate transactions by month
   transactions.forEach(t => {
     const date = new Date(t.date);
-    // Only process current year (or we could make year selectable, but let's assume current year for simplicity)
+    if (date.getFullYear() !== selectedYear) return;
     const month = date.getMonth();
     
     if (t.type === 'income') {

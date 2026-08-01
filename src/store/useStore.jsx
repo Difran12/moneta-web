@@ -25,9 +25,10 @@ const defaultAllocations = [
 ];
 
 const defaultSavingsGoals = [
-  { id: '1', name: 'Stockbit (Investasi Saham)', target: 30000000, current: 25998000, icon: 'TrendingUp', color: '#6366f1' },
-  { id: '2', name: 'Ajaib Sekuritas', target: 5000000, current: 1000000, icon: 'Shield', color: '#10b981' },
-  { id: '3', name: 'Married (Tabungan Nikah)', target: 50000000, current: 8000000, icon: 'Heart', color: '#ec4899' },
+  { id: '1', name: 'Stockbit', target: 30000000, current: 25998000, color: '#6366f1' },
+  { id: '2', name: 'Ajaib', target: 5000000, current: 1000000, color: '#10b981' },
+  { id: '3', name: 'Married', target: 50000000, current: 8000000, color: '#ec4899' },
+  { id: '4', name: 'Livin', target: 10000000, current: 4850000, color: '#06b6d4' },
 ];
 
 const defaultDebts = [
@@ -75,6 +76,26 @@ export function StoreProvider({ children }) {
     return localStorage.getItem('money_tracker_lang') || 'en';
   });
 
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
+
+  const [userProfile, setUserProfile] = useState(() => {
+    const saved = localStorage.getItem('moneta_user_profile');
+    return saved ? JSON.parse(saved) : { name: 'Alex Thompson', initials: 'AT', email: 'alex.thompson@moneta.app', password: 'password123' };
+  });
+
+  const [notifications, setNotifications] = useState(() => {
+    const saved = localStorage.getItem('moneta_notifications');
+    return saved ? JSON.parse(saved) : [
+      { id: 1, title: 'Portfolio Asset Bertambah', message: 'Setoran Rp 25.998.000 ke Stockbit berhasil tercatat.', time: '10 menit lalu', read: false, type: 'asset' },
+      { id: 2, title: 'Peringatan Budget Alokasi', message: 'Realisasi kategori Food telah mencapai 85% dari alokasi.', time: '1 jam lalu', read: false, type: 'alert' },
+      { id: 3, title: 'Jatuh Tempo Cicilan', message: 'Cicilan Laptop Rp 480.000 jatuh tempo pada tanggal 25.', time: 'Kemarin', read: false, type: 'debt' },
+      { id: 4, title: 'Pembayaran Gaji Masuk', message: 'Pemasukan Gaji Bulanan Rp 8.000.000 via Livin Mandiri.', time: '2 hari lalu', read: true, type: 'income' },
+      { id: 5, title: 'Keamanan Akun', message: 'Sesi login berhasil diperbarui dari perangkat Windows.', time: '3 hari lalu', read: true, type: 'security' }
+    ];
+  });
+
   useEffect(() => {
     localStorage.setItem('money_tracker_data', JSON.stringify(transactions));
     localStorage.setItem('money_tracker_accounts', JSON.stringify(accounts));
@@ -83,7 +104,9 @@ export function StoreProvider({ children }) {
     localStorage.setItem('moneta_savings_goals', JSON.stringify(savingsGoals));
     localStorage.setItem('moneta_debts', JSON.stringify(debts));
     localStorage.setItem('money_tracker_lang', lang);
-  }, [transactions, accounts, incomeCategories, allocations, savingsGoals, debts, lang]);
+    localStorage.setItem('moneta_user_profile', JSON.stringify(userProfile));
+    localStorage.setItem('moneta_notifications', JSON.stringify(notifications));
+  }, [transactions, accounts, incomeCategories, allocations, savingsGoals, debts, lang, userProfile, notifications]);
 
   const t = (key) => {
     return translations[lang]?.[key] || translations['id']?.[key] || key;
@@ -148,6 +171,15 @@ export function StoreProvider({ children }) {
     return transactions.filter(t => t.type === 'expense').reduce((acc, curr) => acc + curr.amount, 0);
   };
 
+  const updateUserProfile = (newProfile) => {
+    const initials = newProfile.name ? newProfile.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() : 'AT';
+    setUserProfile({ ...newProfile, initials });
+  };
+
+  const markAllNotificationsRead = () => {
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+  };
+
   return (
     <StoreContext.Provider value={{
       transactions,
@@ -171,6 +203,17 @@ export function StoreProvider({ children }) {
       addDebt,
       payDebt,
       deleteDebt,
+      userProfile,
+      updateUserProfile,
+      notifications,
+      setNotifications,
+      markAllNotificationsRead,
+      selectedMonth,
+      setSelectedMonth,
+      selectedYear,
+      setSelectedYear,
+      isLoggedIn,
+      setIsLoggedIn,
       lang,
       setLang,
       t
