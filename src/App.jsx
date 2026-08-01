@@ -7,6 +7,7 @@ import SavingsAndDebts from './components/SavingsAndDebts';
 import ProfileModal from './components/ProfileModal';
 import LoginModal from './components/LoginModal';
 import SearchableAccountSelect from './components/SearchableAccountSelect';
+import ToastAndConfirm from './components/ToastAndConfirm';
 import { Wallet, TrendingUp, TrendingDown, Plus, Trash2, Sun, Moon, Globe, X, AlertCircle, LayoutDashboard, Landmark, FileText, Settings as SettingsIcon, Bell, ChevronDown, Calendar, Layers } from 'lucide-react';
 import './index.css';
 
@@ -17,7 +18,7 @@ const formatCurrency = (amount) => {
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 export default function App() {
-  const { transactions, addTransaction, deleteTransaction, accounts, incomeCategories, allocations, userProfile, updateUserProfile, notifications, markAllNotificationsRead, selectedMonth, setSelectedMonth, selectedYear, setSelectedYear, isLoggedIn, lang, setLang, t } = useStore();
+  const { transactions, addTransaction, deleteTransaction, accounts, incomeCategories, allocations, userProfile, updateUserProfile, notifications, markAllNotificationsRead, selectedMonth, setSelectedMonth, selectedYear, setSelectedYear, isLoggedIn, lang, setLang, t, showToast, showConfirm } = useStore();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showAddForm, setShowAddForm] = useState(false);
 
@@ -62,7 +63,12 @@ export default function App() {
 
   const handleProfileSave = (e) => {
     e.preventDefault();
+    if (!editProfileName.trim()) {
+      showToast(lang === 'en' ? 'Please enter your name!' : 'Mohon masukkan nama Anda!', 'warning');
+      return;
+    }
     updateUserProfile({ name: editProfileName, email: editProfileEmail });
+    showToast(lang === 'en' ? 'Profile updated successfully!' : 'Profil pengguna berhasil diperbarui!', 'success');
     setShowProfileModal(false);
   };
 
@@ -71,15 +77,23 @@ export default function App() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleAmountChange = (e) => {
+    let val = e.target.value.replace(/[^0-9]/g, '');
+    if (val) {
+      val = new Intl.NumberFormat('id-ID').format(Number(val));
+    }
+    setFormData(prev => ({ ...prev, amount: val }));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData.amount || !formData.category || !formData.account) {
-      alert('Mohon isi semua field!');
+      showToast(lang === 'en' ? 'Please complete all required fields!' : 'Mohon lengkapi semua bidang!', 'warning');
       return;
     }
     const rawAmount = Number(formData.amount.toString().replace(/[^0-9]/g, ''));
     if (isNaN(rawAmount) || rawAmount <= 0) {
-      alert('Jumlah transaksi harus berupa angka lebih besar dari 0');
+      showToast(lang === 'en' ? 'Amount must be greater than 0' : 'Jumlah transaksi harus lebih besar dari 0', 'warning');
       return;
     }
 
@@ -91,6 +105,8 @@ export default function App() {
       date: formData.date ? new Date(formData.date).toISOString() : new Date().toISOString(),
       note: formData.note
     });
+
+    showToast(lang === 'en' ? 'Transaction added successfully!' : 'Transaksi berhasil ditambahkan!', 'success');
 
     setFormData({
       type: 'expense',
@@ -109,38 +125,50 @@ export default function App() {
     <div className="app-container" onClick={() => {
       // Auto close popovers on backdrop click
     }}>
+      <ToastAndConfirm />
       {/* Sleek Compact Icon Sidebar (Reference UI Layout) */}
       <aside className="app-sidebar-compact">
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.75rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
           {/* Logo Emblem */}
-          <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'linear-gradient(135deg, #2563EB 0%, #3B82F6 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF', fontWeight: 800, fontSize: '1.25rem', boxShadow: '0 0 15px rgba(37, 99, 235, 0.5)' }}>
-            M
+          <div className="sidebar-logo-container">
+            <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'linear-gradient(135deg, #2563EB 0%, #3B82F6 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF', fontWeight: 800, fontSize: '1.25rem', boxShadow: '0 0 15px rgba(37, 99, 235, 0.5)', flexShrink: 0 }}>
+              M
+            </div>
+            <span className="logo-text">Moneta</span>
           </div>
 
           {/* Navigation Icon Buttons */}
           <nav className="sidebar-icon-nav">
             <button className={`sidebar-icon-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')} title={t('dashboard')}>
-              <LayoutDashboard size={20} />
+              <LayoutDashboard size={20} style={{ flexShrink: 0 }} />
+              <span className="label">{t('dashboard')}</span>
             </button>
             <button className={`sidebar-icon-item ${activeTab === 'alokasi' ? 'active' : ''}`} onClick={() => setActiveTab('alokasi')} title={t('savingsAndDebts')}>
-              <Landmark size={20} />
+              <Landmark size={20} style={{ flexShrink: 0 }} />
+              <span className="label">{t('savingsAndDebts')}</span>
             </button>
             <button className={`sidebar-icon-item ${activeTab === 'rekap' ? 'active' : ''}`} onClick={() => setActiveTab('rekap')} title={t('yearlyReport')}>
-              <FileText size={20} />
+              <FileText size={20} style={{ flexShrink: 0 }} />
+              <span className="label">{t('yearlyReport')}</span>
             </button>
             <button className={`sidebar-icon-item ${activeTab === 'pengaturan' ? 'active' : ''}`} onClick={() => setActiveTab('pengaturan')} title={t('settings')}>
-              <SettingsIcon size={20} />
+              <SettingsIcon size={20} style={{ flexShrink: 0 }} />
+              <span className="label">{t('settings')}</span>
             </button>
           </nav>
         </div>
 
         {/* Sidebar Bottom Controls */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', alignItems: 'center' }}>
+        <div className="sidebar-icon-nav" style={{ marginBottom: '1.25rem' }}>
           <button className="sidebar-icon-item" onClick={toggleLang} title="Ganti Bahasa">
-            <span style={{ fontSize: '0.75rem', fontWeight: 700 }}>{lang.toUpperCase()}</span>
+            <div style={{ width: '20px', display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 700 }}>{lang.toUpperCase()}</span>
+            </div>
+            <span className="label">Ganti Bahasa</span>
           </button>
           <button className="sidebar-icon-item" onClick={toggleTheme} title="Ganti Tema">
-            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+            {theme === 'dark' ? <Sun size={20} style={{ flexShrink: 0 }} /> : <Moon size={20} style={{ flexShrink: 0 }} />}
+            <span className="label">Ganti Tema</span>
           </button>
         </div>
       </aside>

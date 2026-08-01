@@ -1,27 +1,34 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { translations } from '../utils/translations';
 
-// Default mock data with User's Asset Portfolio
+const categoryMigrationMap = {
+  'Living': 'Kebutuhan Rumah & Hidup',
+  'Saving': 'Tabungan & Investasi',
+  'Self Reward': 'Gaya Hidup (Kopi/Rokok)',
+  'Rokok / Kopi': 'Gaya Hidup (Kopi/Rokok)',
+  'Cicilan/Hutang': 'Cicilan & Utang',
+  'Family': 'Kebutuhan Rumah & Hidup',
+  'Trading': 'Tabungan & Investasi',
+  'Learning': 'Edukasi & Darurat',
+  'Tak Terduga': 'Edukasi & Darurat'
+};
+
 const defaultTransactions = [
   { id: 101, type: 'income', amount: 25998000, category: 'Investasi', account: 'Stockbit', date: new Date().toISOString(), note: 'Portfolio Stockbit' },
   { id: 102, type: 'income', amount: 1000000, category: 'Investasi', account: 'Ajaib', date: new Date().toISOString(), note: 'Portfolio Ajaib Sekuritas' },
   { id: 103, type: 'income', amount: 8000000, category: 'Gaji Bulanan', account: 'Married', date: new Date().toISOString(), note: 'Tabungan Nikah (Married)' },
   { id: 1, type: 'income', amount: 5000000, category: 'Gaji Bulanan', account: 'Livin', date: new Date().toISOString(), note: 'Salary Livin Mandiri' },
-  { id: 2, type: 'expense', amount: 150000, category: 'Living', account: 'Livin', date: new Date().toISOString(), note: 'Makan & Belanja' },
+  { id: 2, type: 'expense', amount: 150000, category: 'Kebutuhan Rumah & Hidup', account: 'Livin', date: new Date().toISOString(), note: 'Makan & Belanja' },
 ];
 const defaultAccounts = ['Stockbit', 'Ajaib', 'Married', 'Livin', 'Tunai', 'BCA', 'Mandiri', 'Gopay', 'OVO'];
 const defaultIncomeCategories = ['Gaji Bulanan', 'Trading', 'Bonus', 'Investasi', 'Lainnya'];
 const defaultAllocations = [
-  { id: '1', name: 'Saving', percent: 50, color: '#3b82f6' },
-  { id: '2', name: 'Self Reward', percent: 5, color: '#ef4444' },
-  { id: '3', name: 'Cicilan/Hutang', percent: 2, color: '#eab308' },
-  { id: '4', name: 'Transportasi', percent: 8, color: '#22c55e' },
-  { id: '5', name: 'Living', percent: 7, color: '#f97316' },
-  { id: '6', name: 'Rokok / Kopi', percent: 8, color: '#06b6d4' },
-  { id: '7', name: 'Family', percent: 8, color: '#8b5cf6' },
-  { id: '8', name: 'Trading', percent: 5, color: '#ec4899' },
-  { id: '9', name: 'Learning', percent: 3, color: '#6366f1' },
-  { id: '10', name: 'Tak Terduga', percent: 4, color: '#14b8a6' },
+  { id: '1', name: 'Tabungan & Investasi', percent: 50, color: '#3b82f6', desc: 'Saham, Reksa Dana, Deposito, Emas' },
+  { id: '2', name: 'Kebutuhan Rumah & Hidup', percent: 15, color: '#f97316', desc: 'Belanja, Makan, Listrik, Air, Internet' },
+  { id: '3', name: 'Transportasi', percent: 8, color: '#22c55e', desc: 'Bensin, Tol, Servis, Ojek Online' },
+  { id: '4', name: 'Cicilan & Utang', percent: 2, color: '#eab308', desc: 'KPR, Cicilan Kendaraan, Pinjaman' },
+  { id: '5', name: 'Gaya Hidup (Kopi/Rokok)', percent: 13, color: '#ef4444', desc: 'Nongkrong, Hobi, Hiburan, Langganan' },
+  { id: '6', name: 'Edukasi & Darurat', percent: 12, color: '#8b5cf6', desc: 'Buku, Kursus, Kesehatan, Dana Darurat' },
 ];
 
 const defaultSavingsGoals = [
@@ -36,15 +43,25 @@ const defaultDebts = [
   { id: '2', name: 'KPR / Cicilan Rumah', total: 30000000, paid: 18000000, dueDate: '10 Setiap Bulan', color: '#f59e0b' },
 ];
 
+const defaultInitialBalances = {
+  'Tunai': 500000,
+  'Livin': 1000000,
+  'BCA': 2500000,
+  'Gopay': 350000
+};
+
 const StoreContext = createContext();
 
 export function StoreProvider({ children }) {
   const [transactions, setTransactions] = useState(() => {
     const saved = localStorage.getItem('money_tracker_data');
-    if (saved) {
-      return JSON.parse(saved);
-    }
-    return defaultTransactions;
+    const rawTx = saved ? JSON.parse(saved) : defaultTransactions;
+    return rawTx.map(t => {
+      if (t.type === 'expense' && categoryMigrationMap[t.category]) {
+        return { ...t, category: categoryMigrationMap[t.category] };
+      }
+      return t;
+    });
   });
 
   const [accounts, setAccounts] = useState(() => {
@@ -58,8 +75,8 @@ export function StoreProvider({ children }) {
   });
 
   const [allocations, setAllocations] = useState(() => {
-    const saved = localStorage.getItem('money_tracker_allocations');
-    return saved ? JSON.parse(saved) : defaultAllocations;
+    localStorage.setItem('money_tracker_allocations', JSON.stringify(defaultAllocations));
+    return defaultAllocations;
   });
 
   const [savingsGoals, setSavingsGoals] = useState(() => {
@@ -70,6 +87,11 @@ export function StoreProvider({ children }) {
   const [debts, setDebts] = useState(() => {
     const saved = localStorage.getItem('moneta_debts');
     return saved ? JSON.parse(saved) : defaultDebts;
+  });
+
+  const [initialBalances, setInitialBalances] = useState(() => {
+    const saved = localStorage.getItem('moneta_initial_balances');
+    return saved ? JSON.parse(saved) : defaultInitialBalances;
   });
 
   const [lang, setLang] = useState(() => {
@@ -96,6 +118,31 @@ export function StoreProvider({ children }) {
     ];
   });
 
+  // Global Toast State
+  const [toast, setToast] = useState(null);
+
+  // Global Confirmation Modal State
+  const [confirmModal, setConfirmModal] = useState(null);
+
+  const showToast = (message, type = 'success') => {
+    setToast({ id: Date.now(), message, type });
+  };
+
+  const hideToast = () => setToast(null);
+
+  const showConfirm = ({ title, message, onConfirm, confirmText, cancelText, isDanger = true }) => {
+    setConfirmModal({
+      title,
+      message,
+      onConfirm,
+      confirmText: confirmText || (lang === 'en' ? 'Yes, Delete' : 'Ya, Hapus'),
+      cancelText: cancelText || (lang === 'en' ? 'Cancel' : 'Batal'),
+      isDanger
+    });
+  };
+
+  const hideConfirm = () => setConfirmModal(null);
+
   useEffect(() => {
     localStorage.setItem('money_tracker_data', JSON.stringify(transactions));
     localStorage.setItem('money_tracker_accounts', JSON.stringify(accounts));
@@ -106,7 +153,8 @@ export function StoreProvider({ children }) {
     localStorage.setItem('money_tracker_lang', lang);
     localStorage.setItem('moneta_user_profile', JSON.stringify(userProfile));
     localStorage.setItem('moneta_notifications', JSON.stringify(notifications));
-  }, [transactions, accounts, incomeCategories, allocations, savingsGoals, debts, lang, userProfile, notifications]);
+    localStorage.setItem('moneta_initial_balances', JSON.stringify(initialBalances));
+  }, [transactions, accounts, incomeCategories, allocations, savingsGoals, debts, lang, userProfile, notifications, initialBalances]);
 
   const t = (key) => {
     return translations[lang]?.[key] || translations['id']?.[key] || key;
@@ -144,8 +192,37 @@ export function StoreProvider({ children }) {
     setSavingsGoals(prev => prev.filter(g => g.id !== id));
   };
 
+  const updateInitialBalance = (accountName, amount) => {
+    setInitialBalances(prev => ({
+      ...prev,
+      [accountName]: Number(amount || 0)
+    }));
+  };
+
+  const deleteInitialBalance = (accountName) => {
+    setInitialBalances(prev => {
+      const copy = { ...prev };
+      delete copy[accountName];
+      return copy;
+    });
+  };
+
   const addDebt = (debt) => {
     setDebts(prev => [...prev, { ...debt, id: Date.now().toString(), paid: Number(debt.paid || 0) }]);
+  };
+
+  const addAccount = (accountName) => {
+    if (!accountName || accounts.includes(accountName)) return;
+    setAccounts(prev => [...prev, accountName]);
+  };
+
+  const deleteAccount = (accountName) => {
+    setAccounts(prev => prev.filter(a => a !== accountName));
+    setInitialBalances(prev => {
+      const copy = { ...prev };
+      delete copy[accountName];
+      return copy;
+    });
   };
 
   const payDebt = (id, amount) => {
@@ -180,6 +257,10 @@ export function StoreProvider({ children }) {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
 
+  const resetAllocations = () => {
+    setAllocations(defaultAllocations);
+  };
+
   return (
     <StoreContext.Provider value={{
       transactions,
@@ -191,10 +272,13 @@ export function StoreProvider({ children }) {
       getExpense,
       accounts,
       setAccounts,
+      addAccount,
+      deleteAccount,
       incomeCategories,
       setIncomeCategories,
       allocations,
       setAllocations,
+      resetAllocations,
       savingsGoals,
       addSavingsGoal,
       depositSavingsGoal,
@@ -208,6 +292,9 @@ export function StoreProvider({ children }) {
       notifications,
       setNotifications,
       markAllNotificationsRead,
+      initialBalances,
+      updateInitialBalance,
+      deleteInitialBalance,
       selectedMonth,
       setSelectedMonth,
       selectedYear,
@@ -216,7 +303,13 @@ export function StoreProvider({ children }) {
       setIsLoggedIn,
       lang,
       setLang,
-      t
+      t,
+      toast,
+      showToast,
+      hideToast,
+      confirmModal,
+      showConfirm,
+      hideConfirm
     }}>
       {children}
     </StoreContext.Provider>

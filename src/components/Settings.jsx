@@ -1,18 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from '../store/useStore.jsx';
 import AccountLogo from './AccountLogo';
 import AddAccountModal from './AddAccountModal';
 import { BANK_AND_WALLET_CATALOG } from '../utils/bankAndWalletCatalog';
-import { Trash2, Plus, Minus, AlertCircle, Save } from 'lucide-react';
+import { Trash2, Plus, Minus, AlertCircle, Save, RefreshCw } from 'lucide-react';
 
 export default function Settings() {
-  const { accounts, setAccounts, incomeCategories, setIncomeCategories, allocations, setAllocations, t } = useStore();
+  const { accounts, setAccounts, incomeCategories, setIncomeCategories, allocations, setAllocations, resetAllocations, t, showToast, showConfirm, lang } = useStore();
 
   const [isAddAccountModalOpen, setIsAddAccountModalOpen] = useState(false);
   const [newIncomeCat, setNewIncomeCat] = useState('');
 
   // Local state for allocations so we only save when valid
   const [localAllocations, setLocalAllocations] = useState(allocations);
+
+  useEffect(() => {
+    setLocalAllocations(allocations);
+  }, [allocations]);
   
   const totalPercent = localAllocations.reduce((sum, item) => sum + item.percent, 0);
   const isAllocationValid = totalPercent === 100;
@@ -56,7 +60,9 @@ export default function Settings() {
   const handleSaveAllocations = () => {
     if (isAllocationValid) {
       setAllocations(localAllocations);
-      alert(t('savedSuccess'));
+      showToast(lang === 'en' ? 'Budget allocation saved successfully!' : 'Alokasi anggaran berhasil disimpan!', 'success');
+    } else {
+      showToast(lang === 'en' ? 'Total allocation must equal 100%!' : 'Total alokasi harus genap 100%!', 'warning');
     }
   };
 
@@ -72,6 +78,12 @@ export default function Settings() {
   const handleAllocationNameChange = (id, newName) => {
     setLocalAllocations(prev => 
       prev.map(alloc => alloc.id === id ? { ...alloc, name: newName } : alloc)
+    );
+  };
+
+  const handleAllocationDescChange = (id, newDesc) => {
+    setLocalAllocations(prev => 
+      prev.map(alloc => alloc.id === id ? { ...alloc, desc: newDesc } : alloc)
     );
   };
 
@@ -153,26 +165,50 @@ export default function Settings() {
       <div className="glass-card animate-fade-in" style={{ animationDelay: '0.2s' }}>
         <div className="flex-between" style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
           <h3 style={{ fontSize: '1.1rem' }}>{t('expenseCatTitle')}</h3>
-          <button 
-            onClick={handleAddAllocationCat} 
-            disabled={totalPercent >= 100}
-            className="btn" 
-            style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', background: 'var(--bg-tab)', opacity: totalPercent >= 100 ? 0.5 : 1, cursor: totalPercent >= 100 ? 'not-allowed' : 'pointer' }}
-          >
-            <Plus size={16} /> {t('addCategory')}
-          </button>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button 
+              onClick={() => {
+                if (window.confirm("Yakin ingin mereset kategori ke default? Semua kategori custom Anda di sini akan hilang.")) {
+                  resetAllocations();
+                }
+              }}
+              className="btn" 
+              style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)' }}
+            >
+              <RefreshCw size={14} /> Reset
+            </button>
+            <button 
+              onClick={handleAddAllocationCat} 
+              disabled={totalPercent >= 100}
+              className="btn" 
+              style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', background: 'var(--bg-tab)', opacity: totalPercent >= 100 ? 0.5 : 1, cursor: totalPercent >= 100 ? 'not-allowed' : 'pointer' }}
+            >
+              <Plus size={16} /> {t('addCategory')}
+            </button>
+          </div>
         </div>
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginBottom: '1.5rem' }}>
           {localAllocations.map(alloc => (
-            <div key={alloc.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: '0.75rem', alignItems: 'center', padding: '0.35rem 0.75rem', background: 'var(--bg-input)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)' }}>
-              <input 
-                type="text" 
-                value={alloc.name} 
-                onChange={(e) => handleAllocationNameChange(alloc.id, e.target.value)} 
-                className="input-field" 
-                style={{ padding: '0.35rem 0.6rem', fontSize: '0.9rem', background: 'var(--bg-panel)', border: '1px solid var(--border-color)' }} 
-              />
+            <div key={alloc.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: '0.75rem', alignItems: 'center', padding: '0.5rem 0.75rem', background: 'var(--bg-input)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                <input 
+                  type="text" 
+                  value={alloc.name} 
+                  onChange={(e) => handleAllocationNameChange(alloc.id, e.target.value)} 
+                  className="input-field" 
+                  placeholder={lang === 'en' ? 'Category Name' : 'Nama Kategori'}
+                  style={{ padding: '0.35rem 0.6rem', fontSize: '0.9rem', background: 'var(--bg-panel)', border: '1px solid var(--border-color)', fontWeight: 600 }} 
+                />
+                <input 
+                  type="text" 
+                  value={alloc.desc || ''} 
+                  onChange={(e) => handleAllocationDescChange(alloc.id, e.target.value)} 
+                  className="input-field" 
+                  placeholder={lang === 'en' ? 'Detailed description (optional)' : 'Keterangan detail (opsional)'}
+                  style={{ padding: '0.25rem 0.6rem', fontSize: '0.75rem', background: 'var(--bg-panel)', border: '1px dashed var(--border-color)', color: 'var(--text-secondary)' }} 
+                />
+              </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', justifyContent: 'flex-end' }}>
                 <button 
                   onClick={() => handleAllocationChange(alloc.id, alloc.percent - 1)}
