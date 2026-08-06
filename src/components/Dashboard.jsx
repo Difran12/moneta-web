@@ -14,7 +14,7 @@ const formatPercent = (percent) => {
 };
 
 const formatMonetaYAxis = (val) => {
-  if (!val || val === 0) return '$0';
+  if (!val || val === 0) return 'Rp 0';
   const prefix = val > 0 ? '+' : '-';
   const absVal = Math.abs(val);
   if (absVal >= 1000000000) return `${prefix}Rp${(absVal / 1000000000).toFixed(1)}B`;
@@ -629,25 +629,24 @@ export default function Dashboard() {
                   {dynamicPeriodTextFull}
                 </p>
               </div>
-              <div style={{ background: 'var(--bg-input)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '0.35rem 0.75rem', fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer' }}>
-                <span className="text-income">{t('income')}</span>
-                <ChevronDown size={14} />
-              </div>
             </div>
             
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={lineChartData} margin={{ top: 20, right: 20, left: 10, bottom: 0 }}>
                 <defs>
                   <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.5} />
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
                     <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
                   </linearGradient>
                   <linearGradient id="expenseGradient" x1="0" y1="1" x2="0" y2="0">
-                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.5} />
+                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8} />
                     <stop offset="95%" stopColor="#ef4444" stopOpacity={0.0} />
                   </linearGradient>
+                  <filter id="shadow" height="150%">
+                    <feDropShadow dx="0" dy="4" stdDeviation="4" floodColor="#000" floodOpacity="0.15"/>
+                  </filter>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" opacity={0.25} vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" opacity={0.15} vertical={false} />
                 <XAxis 
                   dataKey="day" 
                   stroke="var(--text-secondary)" 
@@ -670,22 +669,24 @@ export default function Dashboard() {
                   dataKey="income" 
                   name={t('income')}
                   stroke="#10b981" 
-                  strokeWidth={3} 
+                  strokeWidth={4} 
                   fillOpacity={1} 
                   fill="url(#incomeGradient)" 
-                  dot={{ r: 4, fill: '#ffffff', stroke: '#10b981', strokeWidth: 2 }}
-                  activeDot={{ r: 6, fill: '#ffffff', stroke: '#10b981', strokeWidth: 3 }} 
+                  dot={{ r: 5, fill: '#10b981', stroke: '#ffffff', strokeWidth: 2 }}
+                  activeDot={{ r: 7, fill: '#10b981', stroke: '#ffffff', strokeWidth: 3 }} 
+                  style={{ filter: 'url(#shadow)' }}
                 />
                 <Area 
                   type="monotone" 
                   dataKey="expenseInverted" 
                   name={t('expense')}
                   stroke="#ef4444" 
-                  strokeWidth={3} 
+                  strokeWidth={4} 
                   fillOpacity={1} 
                   fill="url(#expenseGradient)" 
-                  dot={{ r: 4, fill: '#ffffff', stroke: '#ef4444', strokeWidth: 2 }}
-                  activeDot={{ r: 6, fill: '#ffffff', stroke: '#ef4444', strokeWidth: 3 }} 
+                  dot={{ r: 5, fill: '#ef4444', stroke: '#ffffff', strokeWidth: 2 }}
+                  activeDot={{ r: 7, fill: '#ef4444', stroke: '#ffffff', strokeWidth: 3 }} 
+                  style={{ filter: 'url(#shadow)' }}
                 />
               </AreaChart>
             </ResponsiveContainer>
