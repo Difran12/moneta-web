@@ -572,48 +572,53 @@ export default function Dashboard() {
       {/* Top 5 Hero Metric Cards (Subtle Tinted Color Accent) */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '1rem' }}>
         {/* Card 1: Total Income */}
-        <div className="glass-card" style={{ padding: '1.15rem 1.25rem', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(16, 185, 129, 0.03) 100%)', border: '1px solid rgba(16, 185, 129, 0.25)', display: 'flex', flexDirection: 'column', gap: '0.4rem', justifyContent: 'center' }}>
-          <div className="flex-between" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
+        <div className="metric-card" style={{ padding: '1.15rem 1.25rem', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(16, 185, 129, 0.03) 100%)', border: '1px solid rgba(16, 185, 129, 0.25)', display: 'flex', flexDirection: 'column', gap: '0.4rem', justifyContent: 'center' }}>
+          <TrendingUp className="metric-card-bg-icon" style={{ color: '#10b981' }} size={48} />
+          <div className="flex-between" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 600, zIndex: 1 }}>
             <span>{t('totalIncome')}</span>
             <TrendingUp size={18} style={{ color: '#10b981' }} />
           </div>
-          <div style={{ fontSize: '1.5rem', fontWeight: 800, fontFamily: 'Outfit, sans-serif', color: '#10b981' }}>{formatCurrency(totalIncome)}</div>
+          <div style={{ fontSize: '1.5rem', fontWeight: 800, fontFamily: 'Outfit, sans-serif', color: '#10b981', zIndex: 1 }}>{formatCurrency(totalIncome)}</div>
         </div>
 
         {/* Card 2: Total Realisasi (Expense) */}
-        <div className="glass-card" style={{ padding: '1.15rem 1.25rem', background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(239, 68, 68, 0.03) 100%)', border: '1px solid rgba(239, 68, 68, 0.25)', display: 'flex', flexDirection: 'column', gap: '0.4rem', justifyContent: 'center' }}>
-          <div className="flex-between" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
+        <div className="metric-card" style={{ padding: '1.15rem 1.25rem', background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(239, 68, 68, 0.03) 100%)', border: '1px solid rgba(239, 68, 68, 0.25)', display: 'flex', flexDirection: 'column', gap: '0.4rem', justifyContent: 'center' }}>
+          <TrendingDown className="metric-card-bg-icon" style={{ color: '#ef4444' }} size={48} />
+          <div className="flex-between" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 600, zIndex: 1 }}>
             <span>{t('totalRealisasi')}</span>
             <TrendingDown size={18} style={{ color: '#ef4444' }} />
           </div>
-          <div style={{ fontSize: '1.5rem', fontWeight: 800, fontFamily: 'Outfit, sans-serif', color: '#ef4444' }}>{formatCurrency(totalRealisasi)}</div>
+          <div style={{ fontSize: '1.5rem', fontWeight: 800, fontFamily: 'Outfit, sans-serif', color: '#ef4444', zIndex: 1 }}>{formatCurrency(totalRealisasi)}</div>
         </div>
 
         {/* Card 3: Remaining Balance */}
-        <div className="glass-card" style={{ padding: '1.15rem 1.25rem', background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.12) 0%, rgba(6, 182, 212, 0.03) 100%)', border: '1px solid rgba(6, 182, 212, 0.25)', display: 'flex', flexDirection: 'column', gap: '0.4rem', justifyContent: 'center' }}>
-          <div className="flex-between" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
+        <div className="metric-card" style={{ padding: '1.15rem 1.25rem', background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.12) 0%, rgba(6, 182, 212, 0.03) 100%)', border: '1px solid rgba(6, 182, 212, 0.25)', display: 'flex', flexDirection: 'column', gap: '0.4rem', justifyContent: 'center' }}>
+          <DollarSign className="metric-card-bg-icon" style={{ color: '#06b6d4' }} size={48} />
+          <div className="flex-between" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 600, zIndex: 1 }}>
             <span>{t('saldoSisa')}</span>
             <DollarSign size={18} style={{ color: '#06b6d4' }} />
           </div>
-          <div style={{ fontSize: '1.5rem', fontWeight: 800, fontFamily: 'Outfit, sans-serif', color: '#06b6d4' }}>{formatCurrency(saldo)}</div>
+          <div style={{ fontSize: '1.5rem', fontWeight: 800, fontFamily: 'Outfit, sans-serif', color: '#06b6d4', zIndex: 1 }}>{formatCurrency(saldo)}</div>
         </div>
 
         {/* Card 4: Total Allocation */}
-        <div className="glass-card" style={{ padding: '1.15rem 1.25rem', background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(245, 158, 11, 0.03) 100%)', border: '1px solid rgba(245, 158, 11, 0.25)', display: 'flex', flexDirection: 'column', gap: '0.4rem', justifyContent: 'center' }}>
-          <div className="flex-between" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
+        <div className="metric-card" style={{ padding: '1.15rem 1.25rem', background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(245, 158, 11, 0.03) 100%)', border: '1px solid rgba(245, 158, 11, 0.25)', display: 'flex', flexDirection: 'column', gap: '0.4rem', justifyContent: 'center' }}>
+          <PieChartIcon className="metric-card-bg-icon" style={{ color: '#f59e0b' }} size={48} />
+          <div className="flex-between" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 600, zIndex: 1 }}>
             <span>{t('totalAlokasi')}</span>
             <PieChartIcon size={18} style={{ color: '#f59e0b' }} />
           </div>
-          <div style={{ fontSize: '1.5rem', fontWeight: 800, fontFamily: 'Outfit, sans-serif', color: '#f59e0b' }}>{formatCurrency(totalAlokasi)}</div>
+          <div style={{ fontSize: '1.5rem', fontWeight: 800, fontFamily: 'Outfit, sans-serif', color: '#f59e0b', zIndex: 1 }}>{formatCurrency(totalAlokasi)}</div>
         </div>
 
         {/* Card 5: Percentage Allocation */}
-        <div className="glass-card" style={{ padding: '1.15rem 1.25rem', background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.12) 0%, rgba(168, 85, 247, 0.03) 100%)', border: '1px solid rgba(168, 85, 247, 0.25)', display: 'flex', flexDirection: 'column', gap: '0.4rem', justifyContent: 'center' }}>
-          <div className="flex-between" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
+        <div className="metric-card" style={{ padding: '1.15rem 1.25rem', background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.12) 0%, rgba(168, 85, 247, 0.03) 100%)', border: '1px solid rgba(168, 85, 247, 0.25)', display: 'flex', flexDirection: 'column', gap: '0.4rem', justifyContent: 'center' }}>
+          <PieChartIcon className="metric-card-bg-icon" style={{ color: '#a855f7' }} size={48} />
+          <div className="flex-between" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 600, zIndex: 1 }}>
             <span>{t('percentage')} {t('allocation')}</span>
             <PieChartIcon size={18} style={{ color: '#a855f7' }} />
           </div>
-          <div style={{ fontSize: '1.5rem', fontWeight: 800, fontFamily: 'Outfit, sans-serif', color: '#a855f7' }}>{formatPercent(totalPercent)}</div>
+          <div style={{ fontSize: '1.5rem', fontWeight: 800, fontFamily: 'Outfit, sans-serif', color: '#a855f7', zIndex: 1 }}>{formatPercent(totalPercent)}</div>
         </div>
       </div>
 

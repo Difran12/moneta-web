@@ -211,13 +211,12 @@ h1, h2, h3, h4, h5, h6 {
 /* Glassmorphism Card Style */
 .glass-card {
   background: var(--bg-panel);
-  border: 1px solid var(--border-color);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
   border-radius: var(--radius-xl);
-  padding: 1.5rem;
+  border: 1px solid var(--border-color);
   box-shadow: var(--shadow-card);
-  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s ease;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-card:hover {
@@ -225,6 +224,36 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: var(--shadow-card-hover);
 }
 
+.metric-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+}
+
+.metric-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.metric-card-bg-icon {
+  position: absolute;
+  right: -5%;
+  bottom: -20%;
+  opacity: 0.08;
+  transform: scale(3.5) rotate(-15deg);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+.metric-card:hover .metric-card-bg-icon {
+  transform: scale(4.5) rotate(-5deg);
+  opacity: 0.15;
+}
 /* Hero Card - Specific for Dashboard Balance */
 .hero-card {
   background: var(--bg-gradient-brand);
