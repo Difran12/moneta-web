@@ -636,11 +636,11 @@ export default function Dashboard() {
                 <defs>
                   <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0.15} />
                   </linearGradient>
                   <linearGradient id="expenseGradient" x1="0" y1="1" x2="0" y2="0">
                     <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0.0} />
+                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0.15} />
                   </linearGradient>
                   <filter id="shadow" height="150%">
                     <feDropShadow dx="0" dy="4" stdDeviation="4" floodColor="#000" floodOpacity="0.15"/>
