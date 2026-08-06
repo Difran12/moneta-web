@@ -850,6 +850,49 @@ export default function Dashboard() {
             </div>
           </div>
 
+          {/* Cash Flow by Account Card (Collapsible & Compact) */}
+          <div className="glass-card animate-fade-in" style={{ padding: '0.85rem 1.25rem' }}>
+            <div 
+              className="flex-between" 
+              onClick={() => setShowCashFlowByAccount(!showCashFlowByAccount)}
+              style={{ cursor: 'pointer', borderBottom: showCashFlowByAccount ? '1px solid var(--border-color)' : 'none', paddingBottom: showCashFlowByAccount ? '0.75rem' : '0' }}
+            >
+              <div>
+                <h3 style={{ fontSize: '1.05rem', color: 'var(--text-primary)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  {t('cashFlowByAccountTitle')}
+                  <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', background: 'var(--bg-input)', padding: '0.2rem 0.6rem', borderRadius: '12px' }}>
+                    {showCashFlowByAccount ? (lang === 'en' ? 'Click to hide' : 'Klik untuk sembunyikan') : (lang === 'en' ? 'Click to show' : 'Klik untuk tampilkan')}
+                  </span>
+                </h3>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, background: 'rgba(59, 130, 246, 0.15)', color: 'var(--accent-brand)', padding: '0.3rem 0.75rem', borderRadius: '20px' }}>
+                  {periodAccountBalances.length} {t('accountsCount')}
+                </span>
+                <ChevronDown size={18} style={{ transform: showCashFlowByAccount ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s', color: 'var(--text-secondary)' }} />
+              </div>
+            </div>
+
+            {showCashFlowByAccount && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.85rem', marginTop: '1rem' }}>
+                {periodAccountBalances.map(item => (
+                  <div key={item.name} style={{ background: 'var(--bg-input)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '0.85rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <div className="flex-between">
+                      <AccountLogo name={item.name} size={16} />
+                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: item.net >= 0 ? 'var(--accent-income)' : 'var(--accent-expense)' }}>
+                        {item.net >= 0 ? '+' : ''}{formatCurrency(item.net)}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-secondary)', borderTop: '1px dashed var(--border-color)', paddingTop: '0.4rem' }}>
+                      <span>In: <strong className="text-income">+{formatCurrency(item.income)}</strong></span>
+                      <span>Out: <strong className="text-expense">-{formatCurrency(item.expense)}</strong></span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
         </div>
 
         {/* RIGHT SIDEBAR COLUMN: Budget Allocation & Recent Transactions */}
@@ -1007,49 +1050,6 @@ export default function Dashboard() {
       </div>
 
 
-
-      {/* Cash Flow by Account Card (Collapsible & Compact) */}
-      <div className="glass-card animate-fade-in" style={{ padding: '0.85rem 1.25rem' }}>
-        <div 
-          className="flex-between" 
-          onClick={() => setShowCashFlowByAccount(!showCashFlowByAccount)}
-          style={{ cursor: 'pointer', borderBottom: showCashFlowByAccount ? '1px solid var(--border-color)' : 'none', paddingBottom: showCashFlowByAccount ? '0.75rem' : '0' }}
-        >
-          <div>
-            <h3 style={{ fontSize: '1.05rem', color: 'var(--text-primary)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              {t('cashFlowByAccountTitle')}
-              <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', background: 'var(--bg-input)', padding: '0.2rem 0.6rem', borderRadius: '12px' }}>
-                {showCashFlowByAccount ? (lang === 'en' ? 'Click to hide' : 'Klik untuk sembunyikan') : (lang === 'en' ? 'Click to show' : 'Klik untuk tampilkan')}
-              </span>
-            </h3>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ fontSize: '0.75rem', fontWeight: 700, background: 'rgba(59, 130, 246, 0.15)', color: 'var(--accent-brand)', padding: '0.3rem 0.75rem', borderRadius: '20px' }}>
-              {periodAccountBalances.length} {t('accountsCount')}
-            </span>
-            <ChevronDown size={18} style={{ transform: showCashFlowByAccount ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s', color: 'var(--text-secondary)' }} />
-          </div>
-        </div>
-
-        {showCashFlowByAccount && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.85rem', marginTop: '1rem' }}>
-            {periodAccountBalances.map(item => (
-              <div key={item.name} style={{ background: 'var(--bg-input)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '0.85rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <div className="flex-between">
-                  <AccountLogo name={item.name} size={16} />
-                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: item.net >= 0 ? 'var(--accent-income)' : 'var(--accent-expense)' }}>
-                    {item.net >= 0 ? '+' : ''}{formatCurrency(item.net)}
-                  </span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-secondary)', borderTop: '1px dashed var(--border-color)', paddingTop: '0.4rem' }}>
-                  <span>In: <strong className="text-income">+{formatCurrency(item.income)}</strong></span>
-                  <span>Out: <strong className="text-expense">-{formatCurrency(item.expense)}</strong></span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
 
       {/* Edit Transaction Modal Pop-Up */}
       {editingTx && (
