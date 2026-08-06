@@ -30,7 +30,9 @@ export default function AuthScreen() {
       if (err.code === 'auth/invalid-credential') errMsg = lang === 'en' ? 'Invalid email or password.' : 'Email atau kata sandi salah.';
       if (err.code === 'auth/email-already-in-use') errMsg = lang === 'en' ? 'Email already in use.' : 'Email sudah terdaftar.';
       if (err.code === 'auth/weak-password') errMsg = lang === 'en' ? 'Password should be at least 6 characters.' : 'Kata sandi minimal 6 karakter.';
-      setError(errMsg);
+      
+      // Append the actual Firebase error message so we can debug it
+      setError(`${errMsg} (${err.code || err.message})`);
     } finally {
       setLoading(false);
     }

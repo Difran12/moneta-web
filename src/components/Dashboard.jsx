@@ -339,19 +339,29 @@ export default function Dashboard() {
   const saldo = totalIncome - totalRealisasi;
   const totalPercent = totalAlokasi > 0 ? totalRealisasi / totalAlokasi : 0;
 
-  // Compute manual overall wallet balances (100% Manual input as requested by user)
+  // Compute dynamic overall wallet balances (Initial + Incomes - Expenses)
   const walletBalances = useMemo(() => {
     return accounts
       .filter(acc => initialBalances.hasOwnProperty(acc))
       .map(acc => {
-        const val = Number(initialBalances[acc] || 0);
+        const initialVal = Number(initialBalances[acc] || 0);
+        
+        // Calculate dynamic total from transactions for this specific account
+        const accountTransactions = transactions.filter(t => t.account === acc);
+        const totalIncome = accountTransactions
+          .filter(t => t.type === 'income')
+          .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+        const totalExpense = accountTransactions
+          .filter(t => t.type === 'expense')
+          .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+
         return {
           name: acc,
-          initial: val,
-          current: val
+          initial: initialVal,
+          current: initialVal + totalIncome - totalExpense
         };
       });
-  }, [accounts, initialBalances]);
+  }, [accounts, initialBalances, transactions]);
 
   const totalAssets = walletBalances.reduce((sum, item) => sum + item.current, 0);
 
