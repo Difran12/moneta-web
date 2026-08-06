@@ -124,10 +124,38 @@ export default function App() {
 
   if (authLoading) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-body)' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '50%', border: '4px solid var(--bg-input)', borderTopColor: 'var(--accent-brand)', animation: 'spin 1s linear infinite' }} />
-          <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>Loading Moneta...</span>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-main)', position: 'relative', overflow: 'hidden' }}>
+        {/* Decorative background blurs */}
+        <div style={{ position: 'absolute', width: '300px', height: '300px', background: 'var(--accent-brand)', borderRadius: '50%', filter: 'blur(100px)', opacity: 0.1, top: '20%', left: '25%' }} />
+        <div style={{ position: 'absolute', width: '250px', height: '250px', background: '#10b981', borderRadius: '50%', filter: 'blur(100px)', opacity: 0.1, bottom: '20%', right: '25%' }} />
+        
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem', zIndex: 10 }}>
+          {/* Glowing Icon Wrapper */}
+          <div style={{ position: 'relative', width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ position: 'absolute', width: '100%', height: '100%', borderRadius: '50%', border: '3px solid transparent', borderTopColor: 'var(--accent-brand)', borderBottomColor: '#10b981', animation: 'spin 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite' }} />
+            <div style={{ position: 'absolute', width: '70%', height: '70%', borderRadius: '50%', border: '3px solid transparent', borderLeftColor: 'var(--accent-brand-light)', borderRightColor: '#34d399', animation: 'spin 1s linear infinite reverse' }} />
+            <div style={{ background: 'linear-gradient(135deg, var(--accent-brand), #10b981)', padding: '0.8rem', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 25px rgba(59, 130, 246, 0.4)', animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' }}>
+              <Wallet size={32} color="#ffffff" strokeWidth={2.5} />
+            </div>
+          </div>
+          
+          {/* Loading Text */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem' }}>
+            <span style={{ 
+              fontSize: '1.25rem', 
+              fontWeight: 800, 
+              fontFamily: 'Outfit, sans-serif',
+              background: 'linear-gradient(90deg, var(--text-primary), var(--text-secondary))',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+            }}>
+              Loading Moneta
+            </span>
+            <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', fontWeight: 500, letterSpacing: '1px' }}>
+              SYNCING WITH CLOUD...
+            </span>
+          </div>
         </div>
       </div>
     );
