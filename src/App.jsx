@@ -152,9 +152,6 @@ export default function App() {
             }}>
               Loading Moneta
             </span>
-            <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', fontWeight: 500, letterSpacing: '1px' }}>
-              SYNCING WITH CLOUD...
-            </span>
           </div>
         </div>
       </div>
