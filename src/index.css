@@ -110,7 +110,7 @@ body {
   overflow-x: hidden;
 }
 
-.app-sidebar-compact:hover {
+.app-sidebar-compact.expanded {
   width: 240px;
 }
 
@@ -133,7 +133,7 @@ body {
   white-space: nowrap;
 }
 
-.app-sidebar-compact:hover .sidebar-logo-container .logo-text {
+.app-sidebar-compact.expanded .sidebar-logo-container .logo-text {
   opacity: 1;
   transition-delay: 0.1s;
 }
@@ -180,7 +180,7 @@ body {
   pointer-events: none;
 }
 
-.app-sidebar-compact:hover .sidebar-icon-item span.label {
+.app-sidebar-compact.expanded .sidebar-icon-item span.label {
   opacity: 1;
   transition-delay: 0.1s;
 }

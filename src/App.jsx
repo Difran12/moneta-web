@@ -22,6 +22,7 @@ export default function App() {
   const { transactions, addTransaction, deleteTransaction, accounts, incomeCategories, allocations, userProfile, updateUserProfile, notifications, markAllNotificationsRead, selectedMonth, setSelectedMonth, selectedYear, setSelectedYear, isLoggedIn, authLoading, logout, lang, setLang, t, showToast, showConfirm } = useStore();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showAddForm, setShowAddForm] = useState(false);
+  const [isNavExpanded, setIsNavExpanded] = useState(false);
 
   // Popover & Modal States for Header Controls
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -173,10 +174,10 @@ export default function App() {
     }}>
       <ToastAndConfirm />
       {/* Sleek Compact Icon Sidebar (Reference UI Layout) */}
-      <aside className="app-sidebar-compact">
+      <aside className={`app-sidebar-compact ${isNavExpanded ? 'expanded' : ''}`}>
         <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
           {/* Logo Emblem */}
-          <div className="sidebar-logo-container">
+          <div className="sidebar-logo-container" onClick={() => setIsNavExpanded(!isNavExpanded)} style={{ cursor: 'pointer' }}>
             <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'linear-gradient(135deg, #2563EB 0%, #3B82F6 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF', fontWeight: 800, fontSize: '1.25rem', boxShadow: '0 0 15px rgba(37, 99, 235, 0.5)', flexShrink: 0 }}>
               M
             </div>
@@ -185,19 +186,19 @@ export default function App() {
 
           {/* Navigation Icon Buttons */}
           <nav className="sidebar-icon-nav">
-            <button className={`sidebar-icon-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')} title={t('dashboard')}>
+            <button className={`sidebar-icon-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => { setActiveTab('dashboard'); setIsNavExpanded(false); }} title={t('dashboard')}>
               <LayoutDashboard size={20} style={{ flexShrink: 0 }} />
               <span className="label">{t('dashboard')}</span>
             </button>
-            <button className={`sidebar-icon-item ${activeTab === 'alokasi' ? 'active' : ''}`} onClick={() => setActiveTab('alokasi')} title={t('savingsAndDebts')}>
+            <button className={`sidebar-icon-item ${activeTab === 'alokasi' ? 'active' : ''}`} onClick={() => { setActiveTab('alokasi'); setIsNavExpanded(false); }} title={t('savingsAndDebts')}>
               <Landmark size={20} style={{ flexShrink: 0 }} />
               <span className="label">{t('savingsAndDebts')}</span>
             </button>
-            <button className={`sidebar-icon-item ${activeTab === 'rekap' ? 'active' : ''}`} onClick={() => setActiveTab('rekap')} title={t('yearlyReport')}>
+            <button className={`sidebar-icon-item ${activeTab === 'rekap' ? 'active' : ''}`} onClick={() => { setActiveTab('rekap'); setIsNavExpanded(false); }} title={t('yearlyReport')}>
               <FileText size={20} style={{ flexShrink: 0 }} />
               <span className="label">{t('yearlyReport')}</span>
             </button>
-            <button className={`sidebar-icon-item ${activeTab === 'pengaturan' ? 'active' : ''}`} onClick={() => setActiveTab('pengaturan')} title={t('settings')}>
+            <button className={`sidebar-icon-item ${activeTab === 'pengaturan' ? 'active' : ''}`} onClick={() => { setActiveTab('pengaturan'); setIsNavExpanded(false); }} title={t('settings')}>
               <SettingsIcon size={20} style={{ flexShrink: 0 }} />
               <span className="label">{t('settings')}</span>
             </button>
