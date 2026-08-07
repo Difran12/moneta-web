@@ -568,7 +568,7 @@ export default function Dashboard() {
       {/* Top 5 Hero Metric Cards (Subtle Tinted Color Accent) */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '1rem' }}>
         {/* Card 1: Total Income */}
-        <div className="metric-card" style={{ padding: '1.15rem 1.25rem', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(16, 185, 129, 0.03) 100%)', border: '1px solid rgba(16, 185, 129, 0.25)', display: 'flex', flexDirection: 'column', gap: '0.4rem', justifyContent: 'center' }}>
+        <div className="metric-card" style={{ padding: '1.25rem', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(16, 185, 129, 0.03) 100%)', border: '1px solid rgba(16, 185, 129, 0.25)', display: 'flex', flexDirection: 'column', gap: '0.4rem', justifyContent: 'center' }}>
           <TrendingUp className="metric-card-bg-icon" style={{ color: '#10b981' }} size={48} />
           <div className="flex-between" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 600, zIndex: 1 }}>
             <span>{t('totalIncome')}</span>
@@ -578,7 +578,7 @@ export default function Dashboard() {
         </div>
 
         {/* Card 2: Total Realisasi (Expense) */}
-        <div className="metric-card" style={{ padding: '1.15rem 1.25rem', background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(239, 68, 68, 0.03) 100%)', border: '1px solid rgba(239, 68, 68, 0.25)', display: 'flex', flexDirection: 'column', gap: '0.4rem', justifyContent: 'center' }}>
+        <div className="metric-card" style={{ padding: '1.25rem', background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(239, 68, 68, 0.03) 100%)', border: '1px solid rgba(239, 68, 68, 0.25)', display: 'flex', flexDirection: 'column', gap: '0.4rem', justifyContent: 'center' }}>
           <TrendingDown className="metric-card-bg-icon" style={{ color: '#ef4444' }} size={48} />
           <div className="flex-between" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 600, zIndex: 1 }}>
             <span>{t('totalRealisasi')}</span>
@@ -588,7 +588,7 @@ export default function Dashboard() {
         </div>
 
         {/* Card 3: Remaining Balance */}
-        <div className="metric-card" style={{ padding: '1.15rem 1.25rem', background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.12) 0%, rgba(6, 182, 212, 0.03) 100%)', border: '1px solid rgba(6, 182, 212, 0.25)', display: 'flex', flexDirection: 'column', gap: '0.4rem', justifyContent: 'center' }}>
+        <div className="metric-card" style={{ padding: '1.25rem', background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.12) 0%, rgba(6, 182, 212, 0.03) 100%)', border: '1px solid rgba(6, 182, 212, 0.25)', display: 'flex', flexDirection: 'column', gap: '0.4rem', justifyContent: 'center' }}>
           <DollarSign className="metric-card-bg-icon" style={{ color: '#06b6d4' }} size={48} />
           <div className="flex-between" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 600, zIndex: 1 }}>
             <span>{t('saldoSisa')}</span>
@@ -598,7 +598,7 @@ export default function Dashboard() {
         </div>
 
         {/* Card 4: Total Allocation */}
-        <div className="metric-card" style={{ padding: '1.15rem 1.25rem', background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(245, 158, 11, 0.03) 100%)', border: '1px solid rgba(245, 158, 11, 0.25)', display: 'flex', flexDirection: 'column', gap: '0.4rem', justifyContent: 'center' }}>
+        <div className="metric-card" style={{ padding: '1.25rem', background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(245, 158, 11, 0.03) 100%)', border: '1px solid rgba(245, 158, 11, 0.25)', display: 'flex', flexDirection: 'column', gap: '0.4rem', justifyContent: 'center' }}>
           <PieChartIcon className="metric-card-bg-icon" style={{ color: '#f59e0b' }} size={48} />
           <div className="flex-between" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 600, zIndex: 1 }}>
             <span>{t('totalAlokasi')}</span>
@@ -608,7 +608,7 @@ export default function Dashboard() {
         </div>
 
         {/* Card 5: Percentage Allocation */}
-        <div className="metric-card" style={{ padding: '1.15rem 1.25rem', background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.12) 0%, rgba(168, 85, 247, 0.03) 100%)', border: '1px solid rgba(168, 85, 247, 0.25)', display: 'flex', flexDirection: 'column', gap: '0.4rem', justifyContent: 'center' }}>
+        <div className="metric-card" style={{ padding: '1.25rem', background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.12) 0%, rgba(168, 85, 247, 0.03) 100%)', border: '1px solid rgba(168, 85, 247, 0.25)', display: 'flex', flexDirection: 'column', gap: '0.4rem', justifyContent: 'center' }}>
           <PieChartIcon className="metric-card-bg-icon" style={{ color: '#a855f7' }} size={48} />
           <div className="flex-between" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 600, zIndex: 1 }}>
             <span>{t('percentage')} {t('allocation')}</span>
@@ -625,7 +625,7 @@ export default function Dashboard() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           
           {/* Dual Wave Trend Chart */}
-          <div className="glass-card" style={{ height: showCashflowTrend ? '390px' : 'auto', display: 'flex', flexDirection: 'column', padding: '1.25rem 1.5rem' }}>
+          <div className="glass-card" style={{ height: showCashflowTrend ? '390px' : 'auto', display: 'flex', flexDirection: 'column', padding: '1.25rem' }}>
             <div className="flex-between" onClick={() => setShowCashflowTrend(!showCashflowTrend)} style={{ cursor: 'pointer', marginBottom: showCashflowTrend ? '0.75rem' : '0' }}>
               <div>
                 <h3 style={{ color: 'var(--text-primary)', fontSize: '1.1rem', fontWeight: 700 }}>
@@ -711,7 +711,7 @@ export default function Dashboard() {
           </div>
 
           {/* Real-time Wallet & Cash Balances Card */}
-          <div className="glass-card animate-fade-in" style={{ padding: '1.25rem 1.5rem' }}>
+          <div className="glass-card animate-fade-in" style={{ padding: '1.25rem' }}>
             <div className="flex-between" onClick={() => setShowWalletBalances(!showWalletBalances)} style={{ cursor: 'pointer', marginBottom: showWalletBalances ? '1rem' : '0', borderBottom: showWalletBalances ? '1px solid var(--border-color)' : 'none', paddingBottom: showWalletBalances ? '0.75rem' : '0' }}>
               <div>
                 <h3 style={{ fontSize: '1.05rem', color: 'var(--text-primary)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -805,7 +805,7 @@ export default function Dashboard() {
           </div>
 
           {/* Investment Portfolio & Instruments Section (Integrated inside Left Column matching Wallet Grid width) */}
-          <div className="glass-card animate-fade-in" style={{ padding: '1.25rem 1.5rem', marginTop: '1.25rem' }}>
+          <div className="glass-card animate-fade-in" style={{ padding: '1.25rem', marginTop: '1.25rem' }}>
             <div className="flex-between" onClick={() => setShowInvestments(!showInvestments)} style={{ cursor: 'pointer', marginBottom: showInvestments ? '0.85rem' : '0', borderBottom: showInvestments ? '1px solid var(--border-color)' : 'none', paddingBottom: showInvestments ? '0.65rem' : '0' }}>
               <div>
                 <h3 style={{ fontSize: '1rem', color: 'var(--text-primary)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
@@ -866,7 +866,7 @@ export default function Dashboard() {
           </div>
 
           {/* Cash Flow by Account Card (Collapsible & Compact) */}
-          <div className="glass-card animate-fade-in" style={{ padding: '0.85rem 1.25rem' }}>
+          <div className="glass-card animate-fade-in" style={{ padding: '1.25rem' }}>
             <div 
               className="flex-between" 
               onClick={() => setShowCashFlowByAccount(!showCashFlowByAccount)}
