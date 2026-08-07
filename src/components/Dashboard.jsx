@@ -860,9 +860,6 @@ export default function Dashboard() {
               <div>
                 <h3 style={{ fontSize: '1.05rem', color: 'var(--text-primary)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   {t('cashFlowByAccountTitle')}
-                  <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', background: 'var(--bg-input)', padding: '0.2rem 0.6rem', borderRadius: '12px' }}>
-                    {showCashFlowByAccount ? (lang === 'en' ? 'Click to hide' : 'Klik untuk sembunyikan') : (lang === 'en' ? 'Click to show' : 'Klik untuk tampilkan')}
-                  </span>
                 </h3>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -889,6 +886,58 @@ export default function Dashboard() {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+
+          {/* Active Debts & Installments (Read-Only UI) */}
+          <div className="glass-card" style={{ padding: '1.25rem' }}>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '1rem', color: 'var(--text-primary)' }}>
+              {t('debtsTitle')}
+            </h3>
+            {debts.length === 0 ? (
+              <p className="text-secondary" style={{ fontSize: '0.8rem', textAlign: 'center', padding: '1rem' }}>
+                Tidak ada cicilan/utang aktif.
+              </p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                {debts.map(debt => {
+                  const prog = debt.total > 0 ? (debt.paid / debt.total) * 100 : 0;
+                  const remaining = debt.total - debt.paid;
+                  return (
+                    <div key={debt.id} style={{ background: 'var(--bg-input)', padding: '0.85rem 1rem', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                      <div className="flex-between" style={{ alignItems: 'flex-start', gap: '0.5rem' }}>
+                        <div style={{ display: 'flex', gap: '0.5rem', flex: 1, minWidth: 0 }}>
+                          <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: debt.color || '#ef4444', flexShrink: 0, marginTop: '0.25rem' }} />
+                          <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                            <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{debt.name}</span>
+                            <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: 500 }}><Calendar size={10} style={{ display: 'inline', marginRight: '3px' }} />{t('dueDate')}: {debt.dueDate}</span>
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', flexShrink: 0 }}>
+                          <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'Outfit, sans-serif' }}>
+                            {formatCurrency(debt.paid)}
+                          </span>
+                          <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
+                            / {formatCurrency(debt.total)}
+                          </span>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                        <div style={{ width: '100%', height: '6px', background: 'var(--bg-panel)', borderRadius: '4px', overflow: 'hidden' }}>
+                          <div style={{ width: `${Math.min(prog, 100)}%`, height: '100%', background: prog >= 100 ? '#10b981' : (debt.color || '#ef4444'), borderRadius: '4px', transition: 'width 0.4s ease' }} />
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', fontSize: '0.65rem', fontWeight: 700 }}>
+                          {remaining > 0 ? (
+                            <span style={{ color: '#ef4444' }}>{t('remainingDebt')}: {formatCurrency(remaining)}</span>
+                          ) : (
+                            <span style={{ color: '#10b981' }}>✓ LUNAS</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -954,57 +1003,6 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Active Debts & Installments (Read-Only UI) */}
-          <div className="glass-card" style={{ padding: '1.25rem' }}>
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '1rem', color: 'var(--text-primary)' }}>
-              {t('debtsTitle')}
-            </h3>
-            {debts.length === 0 ? (
-              <p className="text-secondary" style={{ fontSize: '0.8rem', textAlign: 'center', padding: '1rem' }}>
-                Tidak ada cicilan/utang aktif.
-              </p>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-                {debts.map(debt => {
-                  const prog = debt.total > 0 ? (debt.paid / debt.total) * 100 : 0;
-                  const remaining = debt.total - debt.paid;
-                  return (
-                    <div key={debt.id} style={{ background: 'var(--bg-input)', padding: '0.85rem 1rem', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                      <div className="flex-between" style={{ alignItems: 'flex-start', gap: '0.5rem' }}>
-                        <div style={{ display: 'flex', gap: '0.5rem', flex: 1, minWidth: 0 }}>
-                          <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: debt.color || '#ef4444', flexShrink: 0, marginTop: '0.25rem' }} />
-                          <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                            <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{debt.name}</span>
-                            <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: 500 }}><Calendar size={10} style={{ display: 'inline', marginRight: '3px' }} />{t('dueDate')}: {debt.dueDate}</span>
-                          </div>
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', flexShrink: 0 }}>
-                          <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'Outfit, sans-serif' }}>
-                            {formatCurrency(debt.paid)}
-                          </span>
-                          <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
-                            / {formatCurrency(debt.total)}
-                          </span>
-                        </div>
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                        <div style={{ width: '100%', height: '6px', background: 'var(--bg-panel)', borderRadius: '4px', overflow: 'hidden' }}>
-                          <div style={{ width: `${Math.min(prog, 100)}%`, height: '100%', background: prog >= 100 ? '#10b981' : (debt.color || '#ef4444'), borderRadius: '4px', transition: 'width 0.4s ease' }} />
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', fontSize: '0.65rem', fontWeight: 700 }}>
-                          {remaining > 0 ? (
-                            <span style={{ color: '#ef4444' }}>{t('remainingDebt')}: {formatCurrency(remaining)}</span>
-                          ) : (
-                            <span style={{ color: '#10b981' }}>✓ LUNAS</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
 
           {/* Card 2: Recent Transactions (Ultra User-Friendly UI) */}
           <div className="glass-card" style={{ padding: '1.25rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
