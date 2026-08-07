@@ -9,6 +9,18 @@ const formatCurrency = (amount) => {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount || 0);
 };
 
+const parseNumberInput = (val) => {
+  if (typeof val === 'number') return val.toString();
+  return (val || '').replace(/\D/g, '');
+};
+
+const formatNumberInput = (val) => {
+  if (val === '' || val === null || val === undefined) return '';
+  const num = parseInt(parseNumberInput(val), 10);
+  if (isNaN(num)) return '';
+  return new Intl.NumberFormat('en-US').format(num);
+};
+
 export default function SavingsAndDebts() {
   const { savingsGoals, addSavingsGoal, depositSavingsGoal, deleteSavingsGoal, debts, addDebt, payDebt, deleteDebt, updateDebt, t, allocations, transactions, selectedMonth, selectedYear, accounts, lang, showToast, showConfirm } = useStore();
 
@@ -50,8 +62,8 @@ export default function SavingsAndDebts() {
     }
     addSavingsGoal({
       name: newSavings.name,
-      target: Number(newSavings.target),
-      current: Number(newSavings.current || 0),
+      target: Number(parseNumberInput(newSavings.target)),
+      current: Number(parseNumberInput(newSavings.current) || 0),
       account: newSavings.account,
       color: '#10b981'
     });
@@ -68,8 +80,8 @@ export default function SavingsAndDebts() {
     }
     addDebt({
       name: newDebt.name,
-      total: Number(newDebt.total),
-      paid: Number(newDebt.paid || 0),
+      total: Number(parseNumberInput(newDebt.total)),
+      paid: Number(parseNumberInput(newDebt.paid) || 0),
       dueDate: newDebt.dueDate || 'Setiap Bulan',
       color: '#ef4444'
     });
@@ -86,8 +98,8 @@ export default function SavingsAndDebts() {
     }
     updateDebt({
       ...editingDebt,
-      total: Number(editingDebt.total),
-      paid: Number(editingDebt.paid || 0),
+      total: Number(parseNumberInput(editingDebt.total)),
+      paid: Number(parseNumberInput(editingDebt.paid) || 0),
     });
     showToast(lang === 'en' ? `Debt item "${editingDebt.name}" updated!` : `Catatan utang "${editingDebt.name}" berhasil diperbarui!`, 'success');
     setEditingDebt(null);
@@ -99,7 +111,7 @@ export default function SavingsAndDebts() {
       showToast(lang === 'en' ? 'Please enter deposit amount!' : 'Mohon masukkan nominal setor!', 'warning');
       return;
     }
-    depositSavingsGoal(depositGoalId, Number(depositAmount));
+    depositSavingsGoal(depositGoalId, Number(parseNumberInput(depositAmount)));
     showToast(lang === 'en' ? 'Deposit recorded successfully!' : 'Setoran tabungan berhasil dicatat!', 'success');
     setDepositGoalId(null);
     setDepositAmount('');
@@ -111,7 +123,7 @@ export default function SavingsAndDebts() {
       showToast(lang === 'en' ? 'Please enter payment amount!' : 'Mohon masukkan nominal bayar!', 'warning');
       return;
     }
-    payDebt(payDebtId, Number(payAmount));
+    payDebt(payDebtId, Number(parseNumberInput(payAmount)));
     showToast(lang === 'en' ? 'Debt payment recorded successfully!' : 'Pembayaran cicilan berhasil dicatat!', 'success');
     setPayDebtId(null);
     setPayAmount('');
@@ -407,11 +419,11 @@ export default function SavingsAndDebts() {
               </div>
               <div className="input-group">
                 <label>{t('targetNominal')}</label>
-                <input type="number" className="input-field" placeholder="10,000,000" value={newSavings.target} onChange={e => setNewSavings({...newSavings, target: e.target.value})} required />
+                <input type="text" className="input-field" placeholder="10,000,000" value={formatNumberInput(newSavings.target)} onChange={e => setNewSavings({...newSavings, target: parseNumberInput(e.target.value)})} required />
               </div>
               <div className="input-group">
                 <label>{t('currentNominal')}</label>
-                <input type="number" className="input-field" placeholder="0" value={newSavings.current} onChange={e => setNewSavings({...newSavings, current: e.target.value})} />
+                <input type="text" className="input-field" placeholder="0" value={formatNumberInput(newSavings.current)} onChange={e => setNewSavings({...newSavings, current: parseNumberInput(e.target.value)})} />
               </div>
               <div className="input-group">
                 <label>{t('walletStorage')}</label>
@@ -442,11 +454,11 @@ export default function SavingsAndDebts() {
               </div>
               <div className="input-group">
                 <label>{t('totalDebtInput')}</label>
-                <input type="number" className="input-field" placeholder="5,000,000" value={newDebt.total} onChange={e => setNewDebt({...newDebt, total: e.target.value})} required />
+                <input type="text" className="input-field" placeholder="5,000,000" value={formatNumberInput(newDebt.total)} onChange={e => setNewDebt({...newDebt, total: parseNumberInput(e.target.value)})} required />
               </div>
               <div className="input-group">
                 <label>{t('alreadyPaidInput')}</label>
-                <input type="number" className="input-field" placeholder="0" value={newDebt.paid} onChange={e => setNewDebt({...newDebt, paid: e.target.value})} />
+                <input type="text" className="input-field" placeholder="0" value={formatNumberInput(newDebt.paid)} onChange={e => setNewDebt({...newDebt, paid: parseNumberInput(e.target.value)})} />
               </div>
               <div className="input-group">
                 <label>{t('dueDate')}</label>
@@ -478,11 +490,11 @@ export default function SavingsAndDebts() {
               </div>
               <div className="input-group">
                 <label>{t('totalDebtInput')}</label>
-                <input type="number" className="input-field" value={editingDebt.total} onChange={e => setEditingDebt({...editingDebt, total: e.target.value})} required />
+                <input type="text" className="input-field" value={formatNumberInput(editingDebt.total)} onChange={e => setEditingDebt({...editingDebt, total: parseNumberInput(e.target.value)})} required />
               </div>
               <div className="input-group">
                 <label>{t('alreadyPaidInput')}</label>
-                <input type="number" className="input-field" value={editingDebt.paid} onChange={e => setEditingDebt({...editingDebt, paid: e.target.value})} />
+                <input type="text" className="input-field" value={formatNumberInput(editingDebt.paid)} onChange={e => setEditingDebt({...editingDebt, paid: parseNumberInput(e.target.value)})} />
               </div>
               <div className="input-group">
                 <label>{t('dueDate')}</label>
@@ -505,7 +517,7 @@ export default function SavingsAndDebts() {
             <form onSubmit={handleDepositSubmit} style={{ display: 'grid', gap: '1rem' }}>
               <div className="input-group">
                 <label>{t('depositNominal')}</label>
-                <input type="number" className="input-field" placeholder="500,000" value={depositAmount} onChange={e => setDepositAmount(e.target.value)} required />
+                <input type="text" className="input-field" placeholder="500,000" value={formatNumberInput(depositAmount)} onChange={e => setDepositAmount(parseNumberInput(e.target.value))} required />
               </div>
               <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
                 <button type="button" className="btn" style={{ flex: 1 }} onClick={() => setDepositGoalId(null)}>{t('cancel')}</button>
@@ -524,7 +536,7 @@ export default function SavingsAndDebts() {
             <form onSubmit={handlePayDebtSubmit} style={{ display: 'grid', gap: '1rem' }}>
               <div className="input-group">
                 <label>Nominal Pembayaran (Rp)</label>
-                <input type="number" className="input-field" placeholder="500,000" value={payAmount} onChange={e => setPayAmount(e.target.value)} required />
+                <input type="text" className="input-field" placeholder="500,000" value={formatNumberInput(payAmount)} onChange={e => setPayAmount(parseNumberInput(e.target.value))} required />
               </div>
               <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
                 <button type="button" className="btn" style={{ flex: 1 }} onClick={() => setPayDebtId(null)}>{t('cancel')}</button>
