@@ -1033,7 +1033,7 @@ export default function Dashboard() {
 
 
           {/* Card 2: Recent Transactions (Ultra User-Friendly UI) */}
-          <div className="glass-card" style={{ padding: '1.25rem', flex: showRecentTransactions ? 1 : 'none', display: 'flex', flexDirection: 'column' }}>
+          <div className="glass-card" style={{ padding: '1.25rem', flex: showRecentTransactions ? 1 : 'none', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
             <div className="flex-between" onClick={() => setShowRecentTransactions(!showRecentTransactions)} style={{ cursor: 'pointer', marginBottom: showRecentTransactions ? '1rem' : '0', borderBottom: showRecentTransactions ? '1px solid var(--border-color)' : 'none', paddingBottom: showRecentTransactions ? '0.6rem' : '0' }}>
               <div>
                 <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-primary)' }}>
