@@ -638,7 +638,7 @@ export default function Dashboard() {
               <ChevronDown size={18} style={{ transform: showCashflowTrend ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s', color: 'var(--text-secondary)' }} />
             </div>
             {showCashflowTrend && (
-              <>
+              <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={lineChartData} margin={{ top: 20, right: 20, left: 10, bottom: 0 }}>
                     <defs>
@@ -706,7 +706,7 @@ export default function Dashboard() {
                     {t('expense')}
                   </div>
                 </div>
-              </>
+              </div>
             )}
           </div>
 
@@ -1047,7 +1047,7 @@ export default function Dashboard() {
             </div>
 
             {showRecentTransactions && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '600px', overflowY: 'auto', paddingRight: '4px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1, minHeight: 0, overflowY: 'auto', paddingRight: '4px' }}>
               {transactions.filter(tItem => isMatchTimeframe(tItem.date)).length === 0 ? (
                 <p className="text-secondary text-center" style={{ padding: '1.5rem', fontSize: '0.82rem' }}>{t('noTransactions')}</p>
               ) : transactions.filter(tItem => isMatchTimeframe(tItem.date)).slice(0, 20).map(tItem => (
