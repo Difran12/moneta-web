@@ -3,7 +3,7 @@ import { useStore } from '../store/useStore.jsx';
 import AccountLogo from './AccountLogo';
 import SearchableAccountSelect from './SearchableAccountSelect';
 import { PieChart, Pie, Cell, BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
-import { TrendingUp, TrendingDown, Trash2, Pencil, X, AlertCircle, Wallet, DollarSign, ChevronDown, PieChart as PieChartIcon, Plus, Landmark, CreditCard, Coins, Shield, CheckCircle2 } from 'lucide-react';
+import { TrendingUp, TrendingDown, Trash2, Pencil, X, AlertCircle, Wallet, DollarSign, ChevronDown, PieChart as PieChartIcon, Plus, Landmark, CreditCard, Coins, Shield, CheckCircle2, Calendar } from 'lucide-react';
 
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount || 0);
