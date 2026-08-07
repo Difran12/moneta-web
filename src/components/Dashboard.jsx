@@ -968,7 +968,8 @@ export default function Dashboard() {
         </div>
 
         {/* RIGHT SIDEBAR COLUMN: Budget Allocation & Recent Transactions */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', height: 0, minHeight: '100%' }}>
+        <div style={{ position: 'relative' }}>
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           
           {/* Card 1: Budget Allocation */}
           <div className="glass-card" style={{ padding: '1.25rem' }}>
@@ -1053,7 +1054,7 @@ export default function Dashboard() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1, minHeight: 0, overflowY: 'auto', paddingRight: '4px' }}>
               {transactions.filter(tItem => isMatchTimeframe(tItem.date)).length === 0 ? (
                 <p className="text-secondary text-center" style={{ padding: '1.5rem', fontSize: '0.82rem' }}>{t('noTransactions')}</p>
-              ) : transactions.filter(tItem => isMatchTimeframe(tItem.date)).slice(0, 20).map(tItem => (
+              ) : transactions.filter(tItem => isMatchTimeframe(tItem.date)).map(tItem => (
                 <div 
                   key={tItem.id} 
                   onClick={() => setSelectedDetailTx(tItem)}
@@ -1129,6 +1130,7 @@ export default function Dashboard() {
             )}
           </div>
 
+        </div>
         </div>
       </div>
 
