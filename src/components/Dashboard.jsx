@@ -968,7 +968,7 @@ export default function Dashboard() {
         </div>
 
         {/* RIGHT SIDEBAR COLUMN: Budget Allocation & Recent Transactions */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', height: 0, minHeight: '100%' }}>
           
           {/* Card 1: Budget Allocation */}
           <div className="glass-card" style={{ padding: '1.25rem' }}>
