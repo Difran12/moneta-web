@@ -307,6 +307,10 @@ export function StoreProvider({ children }) {
     setDebts(prev => prev.filter(d => d.id !== id));
   };
 
+  const updateDebt = (updatedDebt) => {
+    setDebts(prev => prev.map(d => d.id === updatedDebt.id ? updatedDebt : d));
+  };
+
   const getBalance = () => {
     return transactions.reduce((acc, curr) => {
       if (curr.type === 'income') return acc + curr.amount;
@@ -361,6 +365,7 @@ export function StoreProvider({ children }) {
       addDebt,
       payDebt,
       deleteDebt,
+      updateDebt,
       userProfile,
       updateUserProfile,
       notifications,

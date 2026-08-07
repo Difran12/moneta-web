@@ -3,20 +3,21 @@ import { useStore } from '../store/useStore.jsx';
 import AccountLogo from './AccountLogo';
 import SearchableAccountSelect from './SearchableAccountSelect';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
-import { Landmark, CreditCard, Plus, Trash2, Shield, TrendingUp, Plane, CheckCircle2, DollarSign, Calendar, Coins } from 'lucide-react';
+import { Landmark, CreditCard, Plus, Trash2, Shield, TrendingUp, Plane, CheckCircle2, DollarSign, Calendar, Coins, Pencil, X } from 'lucide-react';
 
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount || 0);
 };
 
 export default function SavingsAndDebts() {
-  const { savingsGoals, addSavingsGoal, depositSavingsGoal, deleteSavingsGoal, debts, addDebt, payDebt, deleteDebt, t, allocations, transactions, selectedMonth, selectedYear, accounts, lang, showToast, showConfirm } = useStore();
+  const { savingsGoals, addSavingsGoal, depositSavingsGoal, deleteSavingsGoal, debts, addDebt, payDebt, deleteDebt, updateDebt, t, allocations, transactions, selectedMonth, selectedYear, accounts, lang, showToast, showConfirm } = useStore();
 
   const [showSavingsModal, setShowSavingsModal] = useState(false);
   const [showDebtModal, setShowDebtModal] = useState(false);
 
   const [newSavings, setNewSavings] = useState({ name: '', target: '', current: '', account: '' });
   const [newDebt, setNewDebt] = useState({ name: '', total: '', paid: '', dueDate: '' });
+  const [editingDebt, setEditingDebt] = useState(null);
 
   const [depositGoalId, setDepositGoalId] = useState(null);
   const [depositAmount, setDepositAmount] = useState('');
@@ -75,6 +76,21 @@ export default function SavingsAndDebts() {
     showToast(lang === 'en' ? `Debt item "${newDebt.name}" added!` : `Catatan utang "${newDebt.name}" berhasil ditambahkan!`, 'success');
     setNewDebt({ name: '', total: '', paid: '', dueDate: '' });
     setShowDebtModal(false);
+  };
+
+  const handleEditDebtSubmit = (e) => {
+    e.preventDefault();
+    if (!editingDebt.name || !editingDebt.total) {
+      showToast(lang === 'en' ? 'Please complete all required fields!' : 'Mohon lengkapi nama dan total cicilan!', 'warning');
+      return;
+    }
+    updateDebt({
+      ...editingDebt,
+      total: Number(editingDebt.total),
+      paid: Number(editingDebt.paid || 0),
+    });
+    showToast(lang === 'en' ? `Debt item "${editingDebt.name}" updated!` : `Catatan utang "${editingDebt.name}" berhasil diperbarui!`, 'success');
+    setEditingDebt(null);
   };
 
   const handleDepositSubmit = (e) => {
@@ -329,21 +345,30 @@ export default function SavingsAndDebts() {
                     <h4 style={{ fontWeight: 700, fontSize: '1rem' }}>{debt.name}</h4>
                     <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}><Calendar size={12} style={{ display: 'inline', marginRight: '4px' }} />{t('dueDate')}: {debt.dueDate}</p>
                   </div>
-                  <button 
-                    onClick={() => {
-                      showConfirm({
-                        title: lang === 'en' ? 'Delete Debt Item' : 'Hapus Catatan Utang',
-                        message: lang === 'en' ? `Delete debt item "${debt.name}"?` : `Apakah Anda yakin ingin menghapus utang/cicilan "${debt.name}"?`,
-                        onConfirm: () => {
-                          deleteDebt(debt.id);
-                          showToast(lang === 'en' ? `Debt item "${debt.name}" deleted` : `Catatan utang "${debt.name}" berhasil dihapus`, 'danger');
-                        }
-                      });
-                    }} 
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent-expense)' }}
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                  <div style={{ display: 'flex', gap: '0.2rem' }}>
+                    <button 
+                      onClick={() => setEditingDebt(debt)} 
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', padding: '0.35rem', borderRadius: '8px' }}
+                      title="Edit"
+                    >
+                      <Pencil size={16} />
+                    </button>
+                    <button 
+                      onClick={() => {
+                        showConfirm({
+                          title: lang === 'en' ? 'Delete Debt Item' : 'Hapus Catatan Utang',
+                          message: lang === 'en' ? `Delete debt item "${debt.name}"?` : `Apakah Anda yakin ingin menghapus utang/cicilan "${debt.name}"?`,
+                          onConfirm: () => {
+                            deleteDebt(debt.id);
+                            showToast(lang === 'en' ? `Debt item "${debt.name}" deleted` : `Catatan utang "${debt.name}" berhasil dihapus`, 'danger');
+                          }
+                        });
+                      }} 
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent-expense)', padding: '0.35rem', borderRadius: '8px' }}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
                 </div>
                 <div className="flex-between" style={{ marginBottom: '0.5rem' }}>
                   <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{t('paidAmount')}: <strong style={{ color: 'var(--text-primary)' }}>{formatCurrency(debt.paid)}</strong></span>
@@ -429,6 +454,42 @@ export default function SavingsAndDebts() {
               </div>
               <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
                 <button type="button" className="btn" style={{ flex: 1 }} onClick={() => setShowDebtModal(false)}>{t('cancel')}</button>
+                <button type="submit" className="btn btn-primary" style={{ flex: 1, background: '#ef4444' }}>{t('saveBtn')}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Debt Modal */}
+      {editingDebt && (
+        <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setEditingDebt(null)}>
+          <div className="modal-content">
+            <div className="flex-between" style={{ marginBottom: '1rem' }}>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Edit Cicilan / Hutang</h3>
+              <button onClick={() => setEditingDebt(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}>
+                <X size={20} />
+              </button>
+            </div>
+            <form onSubmit={handleEditDebtSubmit} style={{ display: 'grid', gap: '1rem' }}>
+              <div className="input-group">
+                <label>{t('debtName')}</label>
+                <input type="text" className="input-field" value={editingDebt.name} onChange={e => setEditingDebt({...editingDebt, name: e.target.value})} required />
+              </div>
+              <div className="input-group">
+                <label>{t('totalDebtInput')}</label>
+                <input type="number" className="input-field" value={editingDebt.total} onChange={e => setEditingDebt({...editingDebt, total: e.target.value})} required />
+              </div>
+              <div className="input-group">
+                <label>{t('alreadyPaidInput')}</label>
+                <input type="number" className="input-field" value={editingDebt.paid} onChange={e => setEditingDebt({...editingDebt, paid: e.target.value})} />
+              </div>
+              <div className="input-group">
+                <label>{t('dueDate')}</label>
+                <input type="text" className="input-field" value={editingDebt.dueDate} onChange={e => setEditingDebt({...editingDebt, dueDate: e.target.value})} />
+              </div>
+              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
+                <button type="button" className="btn" style={{ flex: 1 }} onClick={() => setEditingDebt(null)}>{t('cancel')}</button>
                 <button type="submit" className="btn btn-primary" style={{ flex: 1, background: '#ef4444' }}>{t('saveBtn')}</button>
               </div>
             </form>
