@@ -113,8 +113,14 @@ export default function Dashboard() {
   const [depositGoalId, setDepositGoalId] = useState(null);
   const [depositAmount, setDepositAmount] = useState('');
 
-  // Collapsible state for Cash Flow by Account
-  const [showCashFlowByAccount, setShowCashFlowByAccount] = useState(false);
+  // Collapsible state for Dashboard Cards
+  const [showCashFlowByAccount, setShowCashFlowByAccount] = useState(true);
+  const [showCashflowTrend, setShowCashflowTrend] = useState(true);
+  const [showWalletBalances, setShowWalletBalances] = useState(true);
+  const [showInvestments, setShowInvestments] = useState(true);
+  const [showDebts, setShowDebts] = useState(true);
+  const [showBudgetAllocation, setShowBudgetAllocation] = useState(true);
+  const [showRecentTransactions, setShowRecentTransactions] = useState(true);
 
   // Transaction Detail Modal State
   const [selectedDetailTx, setSelectedDetailTx] = useState(null);
@@ -619,8 +625,8 @@ export default function Dashboard() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           
           {/* Dual Wave Trend Chart */}
-          <div className="glass-card" style={{ height: '390px', display: 'flex', flexDirection: 'column', padding: '1.25rem 1.5rem' }}>
-            <div className="flex-between" style={{ marginBottom: '0.75rem' }}>
+          <div className="glass-card" style={{ height: showCashflowTrend ? '390px' : 'auto', display: 'flex', flexDirection: 'column', padding: '1.25rem 1.5rem' }}>
+            <div className="flex-between" onClick={() => setShowCashflowTrend(!showCashflowTrend)} style={{ cursor: 'pointer', marginBottom: showCashflowTrend ? '0.75rem' : '0' }}>
               <div>
                 <h3 style={{ color: 'var(--text-primary)', fontSize: '1.1rem', fontWeight: 700 }}>
                   {t('trendTitle')} ({t(timeframe)})
@@ -629,83 +635,84 @@ export default function Dashboard() {
                   {dynamicPeriodTextFull}
                 </p>
               </div>
+              <ChevronDown size={18} style={{ transform: showCashflowTrend ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s', color: 'var(--text-secondary)' }} />
             </div>
-            
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={lineChartData} margin={{ top: 20, right: 20, left: 10, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0.15} />
-                  </linearGradient>
-                  <linearGradient id="expenseGradient" x1="0" y1="1" x2="0" y2="0">
-                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0.15} />
-                  </linearGradient>
-                  <filter id="shadow" height="150%">
-                    <feDropShadow dx="0" dy="4" stdDeviation="4" floodColor="#000" floodOpacity="0.15"/>
-                  </filter>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" opacity={0.15} vertical={false} />
-                <XAxis 
-                  dataKey="day" 
-                  stroke="var(--text-secondary)" 
-                  tick={{ fill: 'var(--text-secondary)', fontSize: 11, fontWeight: 500 }} 
-                  axisLine={{ stroke: 'var(--border-color)' }}
-                  tickLine={false}
-                />
-                <YAxis 
-                  stroke="var(--text-secondary)" 
-                  tick={{ fill: 'var(--text-secondary)', fontSize: 10, fontWeight: 500 }} 
-                  tickFormatter={formatMonetaYAxis} 
-                  axisLine={false} 
-                  tickLine={false}
-                />
-                <ReferenceLine y={0} stroke="var(--border-color)" strokeDasharray="3 3" />
-                <RechartsTooltip content={<CustomMonetaTooltip />} />
-                
-                <Area 
-                  type="monotone" 
-                  dataKey="income" 
-                  name={t('income')}
-                  stroke="#10b981" 
-                  strokeWidth={4} 
-                  fillOpacity={1} 
-                  fill="url(#incomeGradient)" 
-                  dot={{ r: 5, fill: '#10b981', stroke: '#ffffff', strokeWidth: 2 }}
-                  activeDot={{ r: 7, fill: '#10b981', stroke: '#ffffff', strokeWidth: 3 }} 
-                  style={{ filter: 'url(#shadow)' }}
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="expenseInverted" 
-                  name={t('expense')}
-                  stroke="#ef4444" 
-                  strokeWidth={4} 
-                  fillOpacity={1} 
-                  fill="url(#expenseGradient)" 
-                  dot={{ r: 5, fill: '#ef4444', stroke: '#ffffff', strokeWidth: 2 }}
-                  activeDot={{ r: 7, fill: '#ef4444', stroke: '#ffffff', strokeWidth: 3 }} 
-                  style={{ filter: 'url(#shadow)' }}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+            {showCashflowTrend && (
+              <>
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={lineChartData} margin={{ top: 20, right: 20, left: 10, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
+                        <stop offset="95%" stopColor="#10b981" stopOpacity={0.15} />
+                      </linearGradient>
+                      <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8} />
+                        <stop offset="95%" stopColor="#ef4444" stopOpacity={0.15} />
+                      </linearGradient>
+                      <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+                        <feDropShadow dx="0" dy="8" stdDeviation="6" floodOpacity="0.2" />
+                      </filter>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.06)" />
+                    <XAxis 
+                      dataKey="name" 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fill: 'var(--text-secondary)', fontSize: 10 }}
+                      dy={10}
+                    />
+                    <YAxis 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fill: 'var(--text-secondary)', fontSize: 10 }}
+                      tickFormatter={formatMonetaYAxis}
+                      dx={-10}
+                    />
+                    <RechartsTooltip content={<CustomMonetaTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1, strokeDasharray: '4 4' }} />
+                    <ReferenceLine y={0} stroke="rgba(255,255,255,0.1)" />
+                    <Area 
+                      type="monotone" 
+                      dataKey="income" 
+                      stroke="#10b981" 
+                      strokeWidth={4} 
+                      fillOpacity={1} 
+                      fill="url(#incomeGradient)" 
+                      dot={{ r: 5, fill: '#10b981', stroke: '#ffffff', strokeWidth: 2 }}
+                      activeDot={{ r: 7, fill: '#10b981', stroke: '#ffffff', strokeWidth: 3 }} 
+                      style={{ filter: 'url(#shadow)' }}
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="expenseInverted" 
+                      stroke="#ef4444" 
+                      strokeWidth={4} 
+                      fillOpacity={1} 
+                      fill="url(#expenseGradient)" 
+                      dot={{ r: 5, fill: '#ef4444', stroke: '#ffffff', strokeWidth: 2 }}
+                      activeDot={{ r: 7, fill: '#ef4444', stroke: '#ffffff', strokeWidth: 3 }} 
+                      style={{ filter: 'url(#shadow)' }}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
 
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', marginTop: '0.4rem', fontSize: '0.82rem', fontWeight: 600 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: '#10b981' }}>
-                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 8px #10b981' }} />
-                {t('income')}
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: '#ef4444' }}>
-                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444', boxShadow: '0 0 8px #ef4444' }} />
-                {t('expense')}
-              </div>
-            </div>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', marginTop: '0.4rem', fontSize: '0.82rem', fontWeight: 600 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: '#10b981' }}>
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 8px #10b981' }} />
+                    {t('income')}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: '#ef4444' }}>
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444', boxShadow: '0 0 8px #ef4444' }} />
+                    {t('expense')}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Real-time Wallet & Cash Balances Card */}
           <div className="glass-card animate-fade-in" style={{ padding: '1.25rem 1.5rem' }}>
-            <div className="flex-between" style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
+            <div className="flex-between" onClick={() => setShowWalletBalances(!showWalletBalances)} style={{ cursor: 'pointer', marginBottom: showWalletBalances ? '1rem' : '0', borderBottom: showWalletBalances ? '1px solid var(--border-color)' : 'none', paddingBottom: showWalletBalances ? '0.75rem' : '0' }}>
               <div>
                 <h3 style={{ fontSize: '1.05rem', color: 'var(--text-primary)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <Wallet size={18} style={{ color: 'var(--accent-brand)' }} />
@@ -724,14 +731,16 @@ export default function Dashboard() {
                   {walletBalances.length} Wallet
                 </span>
                 <button 
-                  onClick={() => setShowAddWalletModal(true)}
+                  onClick={(e) => { e.stopPropagation(); setShowAddWalletModal(true); }}
                   style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', fontWeight: 700, background: 'var(--accent-brand)', color: '#fff', padding: '0.3rem 0.75rem', borderRadius: '20px', border: 'none', cursor: 'pointer', boxShadow: '0 2px 4px rgba(59, 130, 246, 0.3)' }}
                 >
                   <Plus size={14} strokeWidth={3} /> {lang === 'en' ? 'Add Wallet' : 'Tambah'}
                 </button>
+                <ChevronDown size={18} style={{ transform: showWalletBalances ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s', color: 'var(--text-secondary)', marginLeft: '0.5rem' }} />
               </div>
             </div>
 
+            {showWalletBalances && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))', gap: '0.85rem' }}>
               {walletBalances.map(item => (
                 <div 
@@ -792,11 +801,12 @@ export default function Dashboard() {
                 </div>
               ))}
             </div>
+            )}
           </div>
 
           {/* Investment Portfolio & Instruments Section (Integrated inside Left Column matching Wallet Grid width) */}
           <div className="glass-card animate-fade-in" style={{ padding: '1.25rem 1.5rem', marginTop: '1.25rem' }}>
-            <div className="flex-between" style={{ marginBottom: '0.85rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.65rem' }}>
+            <div className="flex-between" onClick={() => setShowInvestments(!showInvestments)} style={{ cursor: 'pointer', marginBottom: showInvestments ? '0.85rem' : '0', borderBottom: showInvestments ? '1px solid var(--border-color)' : 'none', paddingBottom: showInvestments ? '0.65rem' : '0' }}>
               <div>
                 <h3 style={{ fontSize: '1rem', color: 'var(--text-primary)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
                   <Landmark size={18} style={{ color: '#10b981' }} />
@@ -806,11 +816,15 @@ export default function Dashboard() {
                   {lang === 'en' ? 'Track your active investment accounts, stocks, mutual funds, and assets' : 'Pantau nilai instrumen investasi, saham, sekuritas, & aset Anda'}
                 </p>
               </div>
-              <span style={{ fontSize: '0.72rem', fontWeight: 700, background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', padding: '0.25rem 0.65rem', borderRadius: '20px', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
-                {savingsGoals.length} {lang === 'en' ? 'Instruments' : 'Instrumen'}
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ fontSize: '0.72rem', fontWeight: 700, background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', padding: '0.25rem 0.65rem', borderRadius: '20px', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+                  {savingsGoals.length} {lang === 'en' ? 'Instruments' : 'Instrumen'}
+                </span>
+                <ChevronDown size={18} style={{ transform: showInvestments ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s', color: 'var(--text-secondary)' }} />
+              </div>
             </div>
 
+            {showInvestments && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))', gap: '0.85rem' }}>
               {savingsGoals.map(item => {
                 const progress = item.target > 0 ? Math.min(100, Math.round((item.current / item.target) * 100)) : 0;
@@ -824,7 +838,7 @@ export default function Dashboard() {
                         </span>
                       </div>
                       <button 
-                        onClick={() => setDepositGoalId(item.id)}
+                        onClick={(e) => { e.stopPropagation(); setDepositGoalId(item.id); }}
                         style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '0.15rem 0.55rem', borderRadius: '14px', fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.2rem', flexShrink: 0 }}
                       >
                         <Plus size={11} /> {lang === 'en' ? 'Top Up' : 'Setor'}
@@ -848,6 +862,7 @@ export default function Dashboard() {
                 );
               })}
             </div>
+            )}
           </div>
 
           {/* Cash Flow by Account Card (Collapsible & Compact) */}
@@ -892,53 +907,58 @@ export default function Dashboard() {
 
           {/* Active Debts & Installments (Read-Only UI) */}
           <div className="glass-card" style={{ padding: '1.25rem' }}>
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '1rem', color: 'var(--text-primary)' }}>
-              {t('debtsTitle')}
-            </h3>
-            {debts.length === 0 ? (
-              <p className="text-secondary" style={{ fontSize: '0.8rem', textAlign: 'center', padding: '1rem' }}>
-                Tidak ada cicilan/utang aktif.
-              </p>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-                {debts.map(debt => {
-                  const prog = debt.total > 0 ? (debt.paid / debt.total) * 100 : 0;
-                  const remaining = debt.total - debt.paid;
-                  return (
-                    <div key={debt.id} style={{ background: 'var(--bg-input)', padding: '0.85rem 1rem', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                      <div className="flex-between" style={{ alignItems: 'flex-start', gap: '0.5rem' }}>
-                        <div style={{ display: 'flex', gap: '0.5rem', flex: 1, minWidth: 0 }}>
-                          <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: debt.color || '#ef4444', flexShrink: 0, marginTop: '0.25rem' }} />
-                          <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                            <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{debt.name}</span>
-                            <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: 500 }}><Calendar size={10} style={{ display: 'inline', marginRight: '3px' }} />{t('dueDate')}: {debt.dueDate}</span>
+            <div className="flex-between" onClick={() => setShowDebts(!showDebts)} style={{ cursor: 'pointer', marginBottom: showDebts ? '1rem' : '0' }}>
+              <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
+                {t('debtsTitle')}
+              </h3>
+              <ChevronDown size={18} style={{ transform: showDebts ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s', color: 'var(--text-secondary)' }} />
+            </div>
+            {showDebts && (
+              debts.length === 0 ? (
+                <p className="text-secondary" style={{ fontSize: '0.8rem', textAlign: 'center', padding: '1rem' }}>
+                  Tidak ada cicilan/utang aktif.
+                </p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                  {debts.map(debt => {
+                    const prog = debt.total > 0 ? (debt.paid / debt.total) * 100 : 0;
+                    const remaining = debt.total - debt.paid;
+                    return (
+                      <div key={debt.id} style={{ background: 'var(--bg-input)', padding: '0.85rem 1rem', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                        <div className="flex-between" style={{ alignItems: 'flex-start', gap: '0.5rem' }}>
+                          <div style={{ display: 'flex', gap: '0.5rem', flex: 1, minWidth: 0 }}>
+                            <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: debt.color || '#ef4444', flexShrink: 0, marginTop: '0.25rem' }} />
+                            <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                              <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{debt.name}</span>
+                              <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: 500 }}><Calendar size={10} style={{ display: 'inline', marginRight: '3px' }} />{t('dueDate')}: {debt.dueDate}</span>
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', flexShrink: 0 }}>
+                            <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'Outfit, sans-serif' }}>
+                              {formatCurrency(debt.paid)}
+                            </span>
+                            <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
+                              / {formatCurrency(debt.total)}
+                            </span>
                           </div>
                         </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', flexShrink: 0 }}>
-                          <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'Outfit, sans-serif' }}>
-                            {formatCurrency(debt.paid)}
-                          </span>
-                          <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
-                            / {formatCurrency(debt.total)}
-                          </span>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                          <div style={{ width: '100%', height: '6px', background: 'var(--bg-panel)', borderRadius: '4px', overflow: 'hidden' }}>
+                            <div style={{ width: `${Math.min(prog, 100)}%`, height: '100%', background: prog >= 100 ? '#10b981' : (debt.color || '#ef4444'), borderRadius: '4px', transition: 'width 0.4s ease' }} />
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'flex-end', fontSize: '0.65rem', fontWeight: 700 }}>
+                            {remaining > 0 ? (
+                              <span style={{ color: '#ef4444' }}>{t('remainingDebt')}: {formatCurrency(remaining)}</span>
+                            ) : (
+                              <span style={{ color: '#10b981' }}>✓ LUNAS</span>
+                            )}
+                          </div>
                         </div>
                       </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                        <div style={{ width: '100%', height: '6px', background: 'var(--bg-panel)', borderRadius: '4px', overflow: 'hidden' }}>
-                          <div style={{ width: `${Math.min(prog, 100)}%`, height: '100%', background: prog >= 100 ? '#10b981' : (debt.color || '#ef4444'), borderRadius: '4px', transition: 'width 0.4s ease' }} />
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', fontSize: '0.65rem', fontWeight: 700 }}>
-                          {remaining > 0 ? (
-                            <span style={{ color: '#ef4444' }}>{t('remainingDebt')}: {formatCurrency(remaining)}</span>
-                          ) : (
-                            <span style={{ color: '#10b981' }}>✓ LUNAS</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )
             )}
           </div>
 
@@ -949,9 +969,13 @@ export default function Dashboard() {
           
           {/* Card 1: Budget Allocation */}
           <div className="glass-card" style={{ padding: '1.25rem' }}>
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '1rem' }}>
-              {t('budgetAllocation')} ({dynamicPeriodText})
-            </h3>
+            <div className="flex-between" onClick={() => setShowBudgetAllocation(!showBudgetAllocation)} style={{ cursor: 'pointer', marginBottom: showBudgetAllocation ? '1rem' : '0' }}>
+              <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>
+                {t('budgetAllocation')} ({dynamicPeriodText})
+              </h3>
+              <ChevronDown size={18} style={{ transform: showBudgetAllocation ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s', color: 'var(--text-secondary)' }} />
+            </div>
+            {showBudgetAllocation && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
               {categoryData.map((row, idx) => {
                 const colors = ['#10B981', '#F97316', '#A855F7', '#3B82F6', '#EAB308', '#EC4899'];
@@ -1001,23 +1025,28 @@ export default function Dashboard() {
                 );
               })}
             </div>
+            )}
           </div>
 
 
           {/* Card 2: Recent Transactions (Ultra User-Friendly UI) */}
-          <div className="glass-card" style={{ padding: '1.25rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
-            <div className="flex-between" style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.6rem' }}>
+          <div className="glass-card" style={{ padding: '1.25rem', flex: showRecentTransactions ? 1 : 'none', display: 'flex', flexDirection: 'column' }}>
+            <div className="flex-between" onClick={() => setShowRecentTransactions(!showRecentTransactions)} style={{ cursor: 'pointer', marginBottom: showRecentTransactions ? '1rem' : '0', borderBottom: showRecentTransactions ? '1px solid var(--border-color)' : 'none', paddingBottom: showRecentTransactions ? '0.6rem' : '0' }}>
               <div>
                 <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                   {t('recentTransactions')}
                 </h3>
                 <span className="text-secondary" style={{ fontSize: '0.75rem' }}>{dynamicPeriodText}</span>
               </div>
-              <span style={{ fontSize: '0.72rem', fontWeight: 700, background: 'var(--bg-tab)', color: 'var(--text-secondary)', padding: '0.2rem 0.6rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-                {transactions.filter(tItem => isMatchTimeframe(tItem.date)).length} {lang === 'en' ? 'Transactions' : 'Transaksi'}
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ fontSize: '0.72rem', fontWeight: 700, background: 'var(--bg-tab)', color: 'var(--text-secondary)', padding: '0.2rem 0.6rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+                  {transactions.filter(tItem => isMatchTimeframe(tItem.date)).length} {lang === 'en' ? 'Transactions' : 'Transaksi'}
+                </span>
+                <ChevronDown size={18} style={{ transform: showRecentTransactions ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s', color: 'var(--text-secondary)' }} />
+              </div>
             </div>
 
+            {showRecentTransactions && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '600px', overflowY: 'auto', paddingRight: '4px' }}>
               {transactions.filter(tItem => isMatchTimeframe(tItem.date)).length === 0 ? (
                 <p className="text-secondary text-center" style={{ padding: '1.5rem', fontSize: '0.82rem' }}>{t('noTransactions')}</p>
@@ -1094,6 +1123,7 @@ export default function Dashboard() {
                 </div>
               ))}
             </div>
+            )}
           </div>
 
         </div>
