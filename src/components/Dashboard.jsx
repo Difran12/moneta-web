@@ -638,7 +638,7 @@ export default function Dashboard() {
               <ChevronDown size={18} style={{ transform: showCashflowTrend ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s', color: 'var(--text-secondary)' }} />
             </div>
             {showCashflowTrend && (
-              <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+              <>
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={lineChartData} margin={{ top: 20, right: 20, left: 10, bottom: 0 }}>
                     <defs>
@@ -646,34 +646,36 @@ export default function Dashboard() {
                         <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
                         <stop offset="95%" stopColor="#10b981" stopOpacity={0.15} />
                       </linearGradient>
-                      <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
+                      <linearGradient id="expenseGradient" x1="0" y1="1" x2="0" y2="0">
                         <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8} />
                         <stop offset="95%" stopColor="#ef4444" stopOpacity={0.15} />
                       </linearGradient>
-                      <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
-                        <feDropShadow dx="0" dy="8" stdDeviation="6" floodOpacity="0.2" />
+                      <filter id="shadow" height="150%">
+                        <feDropShadow dx="0" dy="4" stdDeviation="4" floodColor="#000" floodOpacity="0.15"/>
                       </filter>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.06)" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" opacity={0.15} vertical={false} />
                     <XAxis 
-                      dataKey="name" 
-                      axisLine={false} 
-                      tickLine={false} 
-                      tick={{ fill: 'var(--text-secondary)', fontSize: 10 }}
-                      dy={10}
+                      dataKey="day" 
+                      stroke="var(--text-secondary)" 
+                      tick={{ fill: 'var(--text-secondary)', fontSize: 11, fontWeight: 500 }} 
+                      axisLine={{ stroke: 'var(--border-color)' }}
+                      tickLine={false}
                     />
                     <YAxis 
+                      stroke="var(--text-secondary)" 
+                      tick={{ fill: 'var(--text-secondary)', fontSize: 10, fontWeight: 500 }} 
+                      tickFormatter={formatMonetaYAxis} 
                       axisLine={false} 
-                      tickLine={false} 
-                      tick={{ fill: 'var(--text-secondary)', fontSize: 10 }}
-                      tickFormatter={formatMonetaYAxis}
-                      dx={-10}
+                      tickLine={false}
                     />
-                    <RechartsTooltip content={<CustomMonetaTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1, strokeDasharray: '4 4' }} />
-                    <ReferenceLine y={0} stroke="rgba(255,255,255,0.1)" />
+                    <ReferenceLine y={0} stroke="var(--border-color)" strokeDasharray="3 3" />
+                    <RechartsTooltip content={<CustomMonetaTooltip />} />
+                    
                     <Area 
                       type="monotone" 
                       dataKey="income" 
+                      name={t('income')}
                       stroke="#10b981" 
                       strokeWidth={4} 
                       fillOpacity={1} 
@@ -685,6 +687,7 @@ export default function Dashboard() {
                     <Area 
                       type="monotone" 
                       dataKey="expenseInverted" 
+                      name={t('expense')}
                       stroke="#ef4444" 
                       strokeWidth={4} 
                       fillOpacity={1} 
@@ -706,7 +709,7 @@ export default function Dashboard() {
                     {t('expense')}
                   </div>
                 </div>
-              </div>
+              </>
             )}
           </div>
 
