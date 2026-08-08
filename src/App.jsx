@@ -207,15 +207,15 @@ export default function App() {
 
         {/* Sidebar Bottom Controls */}
         <div className="sidebar-icon-nav" style={{ marginBottom: '1.25rem' }}>
-          <button className="sidebar-icon-item" onClick={toggleLang} title="Ganti Bahasa">
+          <button className="sidebar-icon-item" onClick={toggleLang} title={t('changeLanguage')}>
             <div style={{ width: '20px', display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
               <span style={{ fontSize: '0.75rem', fontWeight: 700 }}>{lang.toUpperCase()}</span>
             </div>
-            <span className="label">Ganti Bahasa</span>
+            <span className="label">{t('changeLanguage')}</span>
           </button>
-          <button className="sidebar-icon-item" onClick={toggleTheme} title="Ganti Tema">
+          <button className="sidebar-icon-item" onClick={toggleTheme} title={t('changeTheme')}>
             {theme === 'dark' ? <Sun size={20} style={{ flexShrink: 0 }} /> : <Moon size={20} style={{ flexShrink: 0 }} />}
-            <span className="label">Ganti Tema</span>
+            <span className="label">{t('changeTheme')}</span>
           </button>
         </div>
       </aside>

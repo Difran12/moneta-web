@@ -152,7 +152,9 @@ export const translations = {
     incomeCol: "Pemasukan",
     totalExpenseCol: "Total Pengeluaran",
     netBalanceCol: "Net Saldo",
-    summary: "Ringkasan Tahunan"
+    summary: "Ringkasan Tahunan",
+    changeLanguage: "Ganti Bahasa",
+    changeTheme: "Ganti Tema"
   },
   en: {
     appTitle: "Moneta",
@@ -308,6 +310,8 @@ export const translations = {
     incomeCol: "Income",
     totalExpenseCol: "Total Expenses",
     netBalanceCol: "Net Balance",
-    summary: "Annual Summary"
+    summary: "Annual Summary",
+    changeLanguage: "Change Language",
+    changeTheme: "Change Theme"
   }
 };
