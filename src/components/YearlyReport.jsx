@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useStore } from '../store/useStore.jsx';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, ReferenceLine } from 'recharts';
-import { Calendar, TrendingUp, TrendingDown, Wallet, PieChart, Printer, Download } from 'lucide-react';
+import { Calendar, TrendingUp, TrendingDown, Wallet, PieChart, Printer, Download, FileText } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 const formatCurrency = (amount) => {
@@ -279,6 +279,70 @@ export default function YearlyReport() {
     XLSX.writeFile(wb, `Moneta_Report_${reportTimeframe}_${new Date().getTime()}.xlsx`);
   };
 
+  const handleExportCSV = () => {
+    // Generate raw transactions data
+    const now = new Date();
+    const refDate = new Date(selectedYear, selectedMonth, now.getDate());
+    let filteredTxs = [];
+    if (reportTimeframe === 'yearly') {
+      filteredTxs = transactions.filter(tx => new Date(tx.date).getFullYear() === selectedYear);
+    } else if (reportTimeframe === 'monthly') {
+      filteredTxs = transactions.filter(tx => {
+        const d = new Date(tx.date);
+        return d.getFullYear() === selectedYear && d.getMonth() === selectedMonth;
+      });
+    } else if (reportTimeframe === 'weekly') {
+      const startOfWeek = new Date(refDate);
+      const day = startOfWeek.getDay();
+      const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
+      startOfWeek.setDate(diff);
+      startOfWeek.setHours(0,0,0,0);
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(endOfWeek.getDate() + 6);
+      endOfWeek.setHours(23,59,59,999);
+      filteredTxs = transactions.filter(tx => {
+        const d = new Date(tx.date);
+        return d >= startOfWeek && d <= endOfWeek;
+      });
+    } else if (reportTimeframe === 'daily') {
+      filteredTxs = transactions.filter(tx => {
+        const d = new Date(tx.date);
+        return d.getFullYear() === selectedYear && d.getMonth() === selectedMonth && d.getDate() === refDate.getDate();
+      });
+    } else if (reportTimeframe === 'custom' && customStart && customEnd) {
+        const start = new Date(customStart);
+        start.setHours(0,0,0,0);
+        const end = new Date(customEnd);
+        end.setHours(23,59,59,999);
+        filteredTxs = transactions.filter(tx => {
+          const d = new Date(tx.date);
+          return d >= start && d <= end;
+        });
+    }
+
+    const detailData = [];
+    detailData.push(['Date', 'Type', 'Category', 'Account', 'Amount', 'Note']);
+    filteredTxs.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(tx => {
+      detailData.push([
+        new Date(tx.date).toISOString().split('T')[0], // Standard date format for CSV
+        tx.type,
+        tx.category,
+        tx.account,
+        tx.amount,
+        tx.note ? tx.note.replace(/,/g, '') : '' // Strip commas from notes to avoid breaking CSV
+      ]);
+    });
+
+    const csvContent = "data:text/csv;charset=utf-8," + detailData.map(e => e.join(",")).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `Moneta_Report_${reportTimeframe}_${new Date().getTime()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -307,11 +371,14 @@ export default function YearlyReport() {
             {lang === 'en' ? 'Financial Reports' : 'Laporan Keuangan'}
 
           <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button className="btn" onClick={() => window.print()} style={{ padding: '0.4rem 0.8rem', background: 'var(--bg-panel)', color: 'var(--text-primary)' }} title="Print / PDF">
-              <Printer size={16} />
+            <button className="btn" onClick={() => window.print()} style={{ padding: '0.4rem 0.8rem', background: 'var(--bg-panel)', color: 'var(--text-primary)' }} title="Print PDF">
+              <Printer size={16} /> <span className="hide-mobile">PDF</span>
             </button>
-            <button className="btn btn-primary" onClick={handleExportExcel} style={{ padding: '0.4rem 0.8rem' }} title="Download Excel">
-              <Download size={16} /> <span className="hide-mobile">Excel</span>
+            <button className="btn btn-primary" onClick={handleExportExcel} style={{ padding: '0.4rem 0.8rem', background: '#10b981' }} title="Download XLSX">
+              <Download size={16} /> <span className="hide-mobile">XLSX</span>
+            </button>
+            <button className="btn btn-primary" onClick={handleExportCSV} style={{ padding: '0.4rem 0.8rem', background: '#3b82f6' }} title="Download CSV">
+              <FileText size={16} /> <span className="hide-mobile">CSV</span>
             </button>
           </div>
 
