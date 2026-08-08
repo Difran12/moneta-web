@@ -366,7 +366,7 @@ export default function YearlyReport() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', minWidth: 0 }}>
       
       {/* 1. TIMEFRAME SELECTOR */}
-      <div className="glass-card print-hide" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div className="glass-card print-hide" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem', zIndex: 50 }}>
         <div className="flex-between" style={{ flexWrap: 'wrap', gap: '1rem' }}>
           <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
             {lang === 'en' ? 'Financial Reports' : 'Laporan Keuangan'}
