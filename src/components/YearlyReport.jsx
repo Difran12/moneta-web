@@ -1,8 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { useStore } from '../store/useStore.jsx';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, ReferenceLine } from 'recharts';
-import { Calendar, TrendingUp, TrendingDown, Wallet, PieChart, Printer, Download, FileText, ChevronDown } from 'lucide-react';
+import { Calendar, TrendingUp, TrendingDown, Wallet, PieChart, Printer, Download, FileText, ChevronDown, Image as ImageIcon, FileCode, FileSpreadsheet } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import html2canvas from 'html2canvas';
+import { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, WidthType, BorderStyle } from 'docx';
+import { saveAs } from 'file-saver';
 
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount || 0);
@@ -171,52 +174,40 @@ export default function YearlyReport() {
 
   const { cols, agg, incomeCategories, totalIncome, totalExpense, netBalance, expenseRatio, chartData } = reportData;
 
-  const handleExportExcel = () => {
-    // We want to export two sheets:
-    // 1. Summary (from agg)
-    // 2. Raw Transactions (from filteredTxs)
 
-    // Build Summary Sheet
+  const handleExportSheetJS = (type) => {
+    // Rebuild Summary Data
     const summaryData = [];
-    
-    // Header
     const headerRow = [lang === 'en' ? 'Category' : 'Kategori', ...cols.map(c => c.label)];
     summaryData.push(headerRow);
     
-    // Income
     summaryData.push([lang === 'en' ? 'INCOME' : 'PEMASUKAN']);
     incomeCategories.forEach(cat => {
       const row = [cat];
-      cols.forEach((c, i) => {
-        row.push(agg[i].incomeCategories[cat] || 0);
-      });
+      cols.forEach((c, i) => row.push(agg[i].incomeCategories[cat] || 0));
       summaryData.push(row);
     });
     const totalIncRow = [lang === 'en' ? 'Total Income' : 'Total Pemasukan'];
     cols.forEach((c, i) => totalIncRow.push(agg[i].income));
     summaryData.push(totalIncRow);
 
-    // Expense
     summaryData.push([]);
     summaryData.push([lang === 'en' ? 'EXPENSE & ALLOCATION' : 'PENGELUARAN & ALOKASI']);
     allocations.forEach(alloc => {
       const row = [alloc.name];
-      cols.forEach((c, i) => {
-        row.push(agg[i].expenseCategories[alloc.name] || 0);
-      });
+      cols.forEach((c, i) => row.push(agg[i].expenseCategories[alloc.name] || 0));
       summaryData.push(row);
     });
     const totalExpRow = [lang === 'en' ? 'Total Expense' : 'Total Pengeluaran'];
     cols.forEach((c, i) => totalExpRow.push(agg[i].expense));
     summaryData.push(totalExpRow);
 
-    // Net
     summaryData.push([]);
     const netRow = [lang === 'en' ? 'Net Balance' : 'Net Saldo'];
     cols.forEach((c, i) => netRow.push(agg[i].income - agg[i].expense));
     summaryData.push(netRow);
 
-    // Re-filter raw transactions for the detail sheet (we can just run the same filter logic)
+    // Raw Transactions Data
     const now = new Date();
     const refDate = new Date(selectedYear, selectedMonth, now.getDate());
     let filteredTxs = [];
@@ -270,80 +261,78 @@ export default function YearlyReport() {
     });
 
     const wb = XLSX.utils.book_new();
-    
     const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
     XLSX.utils.book_append_sheet(wb, wsSummary, "Summary");
     
-    const wsDetail = XLSX.utils.aoa_to_sheet(detailData);
-    XLSX.utils.book_append_sheet(wb, wsDetail, "Transactions");
-
-    XLSX.writeFile(wb, `Moneta_Report_${reportTimeframe}_${new Date().getTime()}.xlsx`);
-  };
-
-  const handleExportCSV = () => {
-    // Generate raw transactions data
-    const now = new Date();
-    const refDate = new Date(selectedYear, selectedMonth, now.getDate());
-    let filteredTxs = [];
-    if (reportTimeframe === 'yearly') {
-      filteredTxs = transactions.filter(tx => new Date(tx.date).getFullYear() === selectedYear);
-    } else if (reportTimeframe === 'monthly') {
-      filteredTxs = transactions.filter(tx => {
-        const d = new Date(tx.date);
-        return d.getFullYear() === selectedYear && d.getMonth() === selectedMonth;
-      });
-    } else if (reportTimeframe === 'weekly') {
-      const startOfWeek = new Date(refDate);
-      const day = startOfWeek.getDay();
-      const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
-      startOfWeek.setDate(diff);
-      startOfWeek.setHours(0,0,0,0);
-      const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(endOfWeek.getDate() + 6);
-      endOfWeek.setHours(23,59,59,999);
-      filteredTxs = transactions.filter(tx => {
-        const d = new Date(tx.date);
-        return d >= startOfWeek && d <= endOfWeek;
-      });
-    } else if (reportTimeframe === 'daily') {
-      filteredTxs = transactions.filter(tx => {
-        const d = new Date(tx.date);
-        return d.getFullYear() === selectedYear && d.getMonth() === selectedMonth && d.getDate() === refDate.getDate();
-      });
-    } else if (reportTimeframe === 'custom' && customStart && customEnd) {
-        const start = new Date(customStart);
-        start.setHours(0,0,0,0);
-        const end = new Date(customEnd);
-        end.setHours(23,59,59,999);
-        filteredTxs = transactions.filter(tx => {
-          const d = new Date(tx.date);
-          return d >= start && d <= end;
-        });
+    if (type !== 'html' && type !== 'txt') {
+        const wsDetail = XLSX.utils.aoa_to_sheet(detailData);
+        XLSX.utils.book_append_sheet(wb, wsDetail, "Transactions");
     }
 
-    const detailData = [];
-    detailData.push(['Date', 'Type', 'Category', 'Account', 'Amount', 'Note']);
-    filteredTxs.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(tx => {
-      detailData.push([
-        new Date(tx.date).toISOString().split('T')[0], // Standard date format for CSV
-        tx.type,
-        tx.category,
-        tx.account,
-        tx.amount,
-        tx.note ? tx.note.replace(/,/g, '') : '' // Strip commas from notes to avoid breaking CSV
-      ]);
-    });
-
-    const csvContent = "data:text/csv;charset=utf-8," + detailData.map(e => e.join(",")).join("\n");
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `Moneta_Report_${reportTimeframe}_${new Date().getTime()}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    XLSX.writeFile(wb, `Moneta_Report_${reportTimeframe}_${new Date().getTime()}.${type}`, { bookType: type });
   };
 
+  const handleExportImage = async () => {
+    const reportElement = document.getElementById('report-export-area');
+    if (reportElement) {
+      const canvas = await html2canvas(reportElement, { scale: 2, backgroundColor: '#ffffff' });
+      const imgData = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = imgData;
+      link.download = `Moneta_Report_${reportTimeframe}.png`;
+      link.click();
+    }
+  };
+
+  const handleExportDocx = async () => {
+    // Generate basic DOCX structure with just the summary data for simplicity
+    const now = new Date();
+    
+    const doc = new Document({
+      sections: [{
+        properties: {},
+        children: [
+          new Paragraph({
+            children: [
+              new TextRun({ text: "Moneta Financial Report", bold: true, size: 32 }),
+            ],
+            spacing: { after: 200 }
+          }),
+          new Paragraph({
+            children: [
+              new TextRun(`Timeframe: ${reportTimeframe.toUpperCase()}`),
+            ],
+            spacing: { after: 400 }
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({ text: "Total Income: " + formatCurrency(totalIncome) }),
+            ]
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({ text: "Total Expense: " + formatCurrency(totalExpense) }),
+            ]
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({ text: "Net Balance: " + formatCurrency(netBalance) }),
+            ],
+            spacing: { after: 400 }
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({ text: "Generated on " + now.toLocaleString(), italics: true }),
+            ]
+          }),
+        ],
+      }],
+    });
+
+    Packer.toBlob(doc).then(blob => {
+      saveAs(blob, `Moneta_Report_${reportTimeframe}.docx`);
+    });
+  };
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -363,7 +352,7 @@ export default function YearlyReport() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', minWidth: 0 }}>
+    <div id="report-export-area" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', minWidth: 0 }}>
       
       {/* 1. TIMEFRAME SELECTOR */}
       <div className="glass-card print-hide" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem', zIndex: 50 }}>
@@ -379,16 +368,40 @@ export default function YearlyReport() {
             {showExportMenu && (
               <>
                 <div style={{ position: 'fixed', inset: 0, zIndex: 90 }} onClick={() => setShowExportMenu(false)}></div>
-                <div className="glass-card animate-fade-in" style={{ position: 'absolute', top: 'calc(100% + 0.5rem)', right: 0, padding: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem', minWidth: '160px', zIndex: 100 }}>
-                  <button className="nav-item" onClick={() => { setShowExportMenu(false); window.print(); }} style={{ width: '100%', justifyContent: 'flex-start', background: 'transparent', border: 'none', color: 'var(--text-primary)' }}>
-                    <Printer size={16} /> Export to PDF
+                <div className="glass-card animate-fade-in" style={{ position: 'absolute', top: 'calc(100% + 0.5rem)', right: 0, padding: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem', minWidth: '180px', zIndex: 100, boxShadow: '0 10px 30px rgba(0,0,0,0.15)' }}>
+                  
+                  <button className="nav-item" onClick={() => { setShowExportMenu(false); window.print(); }} style={{ width: '100%', justifyContent: 'flex-start', background: 'transparent', border: 'none', color: 'var(--text-primary)', fontSize: '0.9rem' }}>
+                    <Printer size={16} /> PDF
                   </button>
-                  <button className="nav-item" onClick={() => { setShowExportMenu(false); handleExportExcel(); }} style={{ width: '100%', justifyContent: 'flex-start', background: 'transparent', border: 'none', color: '#10b981' }}>
-                    <Download size={16} /> Export to XLSX
+                  
+                  <button className="nav-item" onClick={() => { setShowExportMenu(false); handleExportSheetJS('xls'); }} style={{ width: '100%', justifyContent: 'flex-start', background: 'transparent', border: 'none', color: 'var(--text-primary)', fontSize: '0.9rem' }}>
+                    <FileSpreadsheet size={16} color="#10b981" /> XLS
                   </button>
-                  <button className="nav-item" onClick={() => { setShowExportMenu(false); handleExportCSV(); }} style={{ width: '100%', justifyContent: 'flex-start', background: 'transparent', border: 'none', color: '#3b82f6' }}>
-                    <FileText size={16} /> Export to CSV
+
+                  <button className="nav-item" onClick={() => { setShowExportMenu(false); handleExportSheetJS('xlsx'); }} style={{ width: '100%', justifyContent: 'flex-start', background: 'transparent', border: 'none', color: 'var(--text-primary)', fontSize: '0.9rem' }}>
+                    <FileSpreadsheet size={16} color="#10b981" /> XLSX
                   </button>
+                  
+                  <button className="nav-item" onClick={() => { setShowExportMenu(false); handleExportSheetJS('html'); }} style={{ width: '100%', justifyContent: 'flex-start', background: 'transparent', border: 'none', color: 'var(--text-primary)', fontSize: '0.9rem' }}>
+                    <FileCode size={16} color="#f59e0b" /> HTML
+                  </button>
+                  
+                  <button className="nav-item" onClick={() => { setShowExportMenu(false); handleExportSheetJS('txt'); }} style={{ width: '100%', justifyContent: 'flex-start', background: 'transparent', border: 'none', color: 'var(--text-primary)', fontSize: '0.9rem' }}>
+                    <FileText size={16} /> Text
+                  </button>
+                  
+                  <button className="nav-item" onClick={() => { setShowExportMenu(false); handleExportSheetJS('csv'); }} style={{ width: '100%', justifyContent: 'flex-start', background: 'transparent', border: 'none', color: 'var(--text-primary)', fontSize: '0.9rem' }}>
+                    <FileText size={16} color="#3b82f6" /> CSV
+                  </button>
+
+                  <button className="nav-item" onClick={() => { setShowExportMenu(false); handleExportImage(); }} style={{ width: '100%', justifyContent: 'flex-start', background: 'transparent', border: 'none', color: 'var(--text-primary)', fontSize: '0.9rem' }}>
+                    <ImageIcon size={16} color="#8b5cf6" /> Image
+                  </button>
+
+                  <button className="nav-item" onClick={() => { setShowExportMenu(false); handleExportDocx(); }} style={{ width: '100%', justifyContent: 'flex-start', background: 'transparent', border: 'none', color: 'var(--text-primary)', fontSize: '0.9rem' }}>
+                    <FileText size={16} color="#2563eb" /> DOCX
+                  </button>
+
                 </div>
               </>
             )}
