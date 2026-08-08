@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useStore } from '../store/useStore.jsx';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, ReferenceLine } from 'recharts';
-import { Calendar, TrendingUp, TrendingDown, Wallet, PieChart, Printer, Download, FileText } from 'lucide-react';
+import { Calendar, TrendingUp, TrendingDown, Wallet, PieChart, Printer, Download, FileText, ChevronDown } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 const formatCurrency = (amount) => {
@@ -24,6 +24,7 @@ export default function YearlyReport() {
   const [reportTimeframe, setReportTimeframe] = useState('yearly'); // daily, weekly, monthly, yearly, custom
   const [customStart, setCustomStart] = useState('');
   const [customEnd, setCustomEnd] = useState('');
+  const [showExportMenu, setShowExportMenu] = useState(false);
 
   const MONTHS = lang === 'en' ? MONTHS_EN : MONTHS_ID;
   const DAYS = lang === 'en' ? DAYS_EN : DAYS_ID;
@@ -370,16 +371,27 @@ export default function YearlyReport() {
           <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
             {lang === 'en' ? 'Financial Reports' : 'Laporan Keuangan'}
 
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button className="btn" onClick={() => window.print()} style={{ padding: '0.4rem 0.8rem', background: 'var(--bg-panel)', color: 'var(--text-primary)' }} title="Print PDF">
-              <Printer size={16} /> <span className="hide-mobile">PDF</span>
+          <div style={{ position: 'relative' }}>
+            <button className="btn btn-primary" onClick={() => setShowExportMenu(!showExportMenu)} style={{ padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Download size={16} /> <span className="hide-mobile">Export</span> <ChevronDown size={14} />
             </button>
-            <button className="btn btn-primary" onClick={handleExportExcel} style={{ padding: '0.4rem 0.8rem', background: '#10b981' }} title="Download XLSX">
-              <Download size={16} /> <span className="hide-mobile">XLSX</span>
-            </button>
-            <button className="btn btn-primary" onClick={handleExportCSV} style={{ padding: '0.4rem 0.8rem', background: '#3b82f6' }} title="Download CSV">
-              <FileText size={16} /> <span className="hide-mobile">CSV</span>
-            </button>
+            
+            {showExportMenu && (
+              <>
+                <div style={{ position: 'fixed', inset: 0, zIndex: 90 }} onClick={() => setShowExportMenu(false)}></div>
+                <div className="glass-card animate-fade-in" style={{ position: 'absolute', top: 'calc(100% + 0.5rem)', right: 0, padding: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem', minWidth: '160px', zIndex: 100 }}>
+                  <button className="nav-item" onClick={() => { setShowExportMenu(false); window.print(); }} style={{ width: '100%', justifyContent: 'flex-start', background: 'transparent', border: 'none', color: 'var(--text-primary)' }}>
+                    <Printer size={16} /> Export to PDF
+                  </button>
+                  <button className="nav-item" onClick={() => { setShowExportMenu(false); handleExportExcel(); }} style={{ width: '100%', justifyContent: 'flex-start', background: 'transparent', border: 'none', color: '#10b981' }}>
+                    <Download size={16} /> Export to XLSX
+                  </button>
+                  <button className="nav-item" onClick={() => { setShowExportMenu(false); handleExportCSV(); }} style={{ width: '100%', justifyContent: 'flex-start', background: 'transparent', border: 'none', color: '#3b82f6' }}>
+                    <FileText size={16} /> Export to CSV
+                  </button>
+                </div>
+              </>
+            )}
           </div>
 
           </h2>
