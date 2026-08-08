@@ -6,6 +6,7 @@ import * as XLSX from 'xlsx';
 import html2canvas from 'html2canvas';
 import { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, WidthType, BorderStyle } from 'docx';
 import { saveAs } from 'file-saver';
+import jsPDF from 'jspdf';
 
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount || 0);
@@ -272,6 +273,30 @@ export default function YearlyReport() {
     XLSX.writeFile(wb, `Moneta_Report_${reportTimeframe}_${new Date().getTime()}.${type}`, { bookType: type });
   };
 
+
+  const handleExportPDF = async () => {
+    const reportElement = document.getElementById('report-export-area');
+    if (reportElement) {
+      // Temporarily hide elements we don't want in PDF
+      const controls = reportElement.querySelector('.print-hide');
+      if (controls) controls.style.display = 'none';
+
+      const canvas = await html2canvas(reportElement, { scale: 2, backgroundColor: '#ffffff' });
+      
+      // Restore controls
+      if (controls) controls.style.display = '';
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`Moneta_Report_${reportTimeframe}_${new Date().getTime()}.pdf`);
+    }
+  };
+
   const handleExportImage = async () => {
     const reportElement = document.getElementById('report-export-area');
     if (reportElement) {
@@ -370,7 +395,7 @@ export default function YearlyReport() {
                 <div style={{ position: 'fixed', inset: 0, zIndex: 90 }} onClick={() => setShowExportMenu(false)}></div>
                 <div className="glass-card animate-fade-in" style={{ position: 'absolute', top: 'calc(100% + 0.5rem)', right: 0, padding: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem', minWidth: '180px', zIndex: 100, boxShadow: '0 10px 30px rgba(0,0,0,0.15)' }}>
                   
-                  <button className="nav-item" onClick={() => { setShowExportMenu(false); window.print(); }} style={{ width: '100%', justifyContent: 'flex-start', background: 'transparent', border: 'none', color: 'var(--text-primary)', fontSize: '0.9rem' }}>
+                  <button className="nav-item" onClick={() => { setShowExportMenu(false); handleExportPDF(); }} style={{ width: '100%', justifyContent: 'flex-start', background: 'transparent', border: 'none', color: 'var(--text-primary)', fontSize: '0.9rem' }}>
                     <Printer size={16} /> PDF
                   </button>
                   
