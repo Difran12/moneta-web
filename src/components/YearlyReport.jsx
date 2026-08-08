@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { useStore } from '../store/useStore.jsx';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, ReferenceLine } from 'recharts';
-import { Calendar, TrendingUp, TrendingDown, Wallet, PieChart } from 'lucide-react';
+import { Calendar, TrendingUp, TrendingDown, Wallet, PieChart, Printer, Download } from 'lucide-react';
+import * as XLSX from 'xlsx';
 
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount || 0);
@@ -169,6 +170,116 @@ export default function YearlyReport() {
 
   const { cols, agg, incomeCategories, totalIncome, totalExpense, netBalance, expenseRatio, chartData } = reportData;
 
+  const handleExportExcel = () => {
+    // We want to export two sheets:
+    // 1. Summary (from agg)
+    // 2. Raw Transactions (from filteredTxs)
+
+    // Build Summary Sheet
+    const summaryData = [];
+    
+    // Header
+    const headerRow = [lang === 'en' ? 'Category' : 'Kategori', ...cols.map(c => c.label)];
+    summaryData.push(headerRow);
+    
+    // Income
+    summaryData.push([lang === 'en' ? 'INCOME' : 'PEMASUKAN']);
+    incomeCategories.forEach(cat => {
+      const row = [cat];
+      cols.forEach((c, i) => {
+        row.push(agg[i].incomeCategories[cat] || 0);
+      });
+      summaryData.push(row);
+    });
+    const totalIncRow = [lang === 'en' ? 'Total Income' : 'Total Pemasukan'];
+    cols.forEach((c, i) => totalIncRow.push(agg[i].income));
+    summaryData.push(totalIncRow);
+
+    // Expense
+    summaryData.push([]);
+    summaryData.push([lang === 'en' ? 'EXPENSE & ALLOCATION' : 'PENGELUARAN & ALOKASI']);
+    allocations.forEach(alloc => {
+      const row = [alloc.name];
+      cols.forEach((c, i) => {
+        row.push(agg[i].expenseCategories[alloc.name] || 0);
+      });
+      summaryData.push(row);
+    });
+    const totalExpRow = [lang === 'en' ? 'Total Expense' : 'Total Pengeluaran'];
+    cols.forEach((c, i) => totalExpRow.push(agg[i].expense));
+    summaryData.push(totalExpRow);
+
+    // Net
+    summaryData.push([]);
+    const netRow = [lang === 'en' ? 'Net Balance' : 'Net Saldo'];
+    cols.forEach((c, i) => netRow.push(agg[i].income - agg[i].expense));
+    summaryData.push(netRow);
+
+    // Re-filter raw transactions for the detail sheet (we can just run the same filter logic)
+    const now = new Date();
+    const refDate = new Date(selectedYear, selectedMonth, now.getDate());
+    let filteredTxs = [];
+    if (reportTimeframe === 'yearly') {
+      filteredTxs = transactions.filter(tx => new Date(tx.date).getFullYear() === selectedYear);
+    } else if (reportTimeframe === 'monthly') {
+      filteredTxs = transactions.filter(tx => {
+        const d = new Date(tx.date);
+        return d.getFullYear() === selectedYear && d.getMonth() === selectedMonth;
+      });
+    } else if (reportTimeframe === 'weekly') {
+      const startOfWeek = new Date(refDate);
+      const day = startOfWeek.getDay();
+      const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
+      startOfWeek.setDate(diff);
+      startOfWeek.setHours(0,0,0,0);
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(endOfWeek.getDate() + 6);
+      endOfWeek.setHours(23,59,59,999);
+      filteredTxs = transactions.filter(tx => {
+        const d = new Date(tx.date);
+        return d >= startOfWeek && d <= endOfWeek;
+      });
+    } else if (reportTimeframe === 'daily') {
+      filteredTxs = transactions.filter(tx => {
+        const d = new Date(tx.date);
+        return d.getFullYear() === selectedYear && d.getMonth() === selectedMonth && d.getDate() === refDate.getDate();
+      });
+    } else if (reportTimeframe === 'custom' && customStart && customEnd) {
+        const start = new Date(customStart);
+        start.setHours(0,0,0,0);
+        const end = new Date(customEnd);
+        end.setHours(23,59,59,999);
+        filteredTxs = transactions.filter(tx => {
+          const d = new Date(tx.date);
+          return d >= start && d <= end;
+        });
+    }
+
+    const detailData = [];
+    detailData.push(['Date', 'Type', 'Category', 'Account', 'Amount', 'Note']);
+    filteredTxs.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(tx => {
+      detailData.push([
+        new Date(tx.date).toLocaleString(lang === 'en' ? 'en-US' : 'id-ID'),
+        tx.type,
+        tx.category,
+        tx.account,
+        tx.amount,
+        tx.note
+      ]);
+    });
+
+    const wb = XLSX.utils.book_new();
+    
+    const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+    XLSX.utils.book_append_sheet(wb, wsSummary, "Summary");
+    
+    const wsDetail = XLSX.utils.aoa_to_sheet(detailData);
+    XLSX.utils.book_append_sheet(wb, wsDetail, "Transactions");
+
+    XLSX.writeFile(wb, `Moneta_Report_${reportTimeframe}_${new Date().getTime()}.xlsx`);
+  };
+
+
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
@@ -190,10 +301,20 @@ export default function YearlyReport() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', minWidth: 0 }}>
       
       {/* 1. TIMEFRAME SELECTOR */}
-      <div className="glass-card" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div className="glass-card print-hide" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <div className="flex-between" style={{ flexWrap: 'wrap', gap: '1rem' }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
             {lang === 'en' ? 'Financial Reports' : 'Laporan Keuangan'}
+
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button className="btn" onClick={() => window.print()} style={{ padding: '0.4rem 0.8rem', background: 'var(--bg-panel)', color: 'var(--text-primary)' }} title="Print / PDF">
+              <Printer size={16} />
+            </button>
+            <button className="btn btn-primary" onClick={handleExportExcel} style={{ padding: '0.4rem 0.8rem' }} title="Download Excel">
+              <Download size={16} /> <span className="hide-mobile">Excel</span>
+            </button>
+          </div>
+
           </h2>
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
             {['daily', 'weekly', 'monthly', 'yearly', 'custom'].map(tf => (

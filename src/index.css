@@ -621,3 +621,11 @@ h1, h2, h3, h4, h5, h6 {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.8; transform: scale(0.95); }
 }
+
+@media print {
+  .app-sidebar, .header-controls, .print-hide, .btn { display: none !important; }
+  .app-main-content { padding: 0 !important; max-width: 100% !important; margin: 0 !important; }
+  .glass-card { box-shadow: none !important; background: transparent !important; border: 1px solid #ddd !important; }
+  body { background: white !important; color: black !important; }
+  .glass-table th, .glass-table td { border: 1px solid #ccc !important; color: black !important; }
+}
