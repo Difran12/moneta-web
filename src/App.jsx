@@ -194,9 +194,9 @@ export default function App() {
               <Landmark size={20} style={{ flexShrink: 0 }} />
               <span className="label">{t('savingsAndDebts')}</span>
             </button>
-            <button className={`sidebar-icon-item ${activeTab === 'rekap' ? 'active' : ''}`} onClick={() => { setActiveTab('rekap'); setIsNavExpanded(false); }} title={t('yearlyReport')}>
+            <button className={`sidebar-icon-item ${activeTab === 'rekap' ? 'active' : ''}`} onClick={() => { setActiveTab('rekap'); setIsNavExpanded(false); }} title={t('reports')}>
               <FileText size={20} style={{ flexShrink: 0 }} />
-              <span className="label">{t('yearlyReport')}</span>
+              <span className="label">{t('reports')}</span>
             </button>
             <button className={`sidebar-icon-item ${activeTab === 'pengaturan' ? 'active' : ''}`} onClick={() => { setActiveTab('pengaturan'); setIsNavExpanded(false); }} title={t('settings')}>
               <SettingsIcon size={20} style={{ flexShrink: 0 }} />
